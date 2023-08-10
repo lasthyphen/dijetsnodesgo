@@ -1,0 +1,329 @@
+{
+	"networkID": 1,
+	"allocations": [
+		{
+			"ethAddr": "0xE35eC4C1FEbB578bA25452106B6C25411Eee8a6e",
+			"djtxAddr": "V-dijets1wd72yhve96su6w2jyvvk943zkrkp9mm8j0yq5m",
+			"initialAmount": 22500000000000000
+		},
+		{
+			"ethAddr": "0x833dEC978C0E4806a8E34d366605550862C9CfD1",
+			"djtxAddr": "V-dijets1trps8jsq6vlvjylpj0knlr4un4z9awdpfwvjpd",
+			"initialAmount": 22500000000000000
+		},
+		{
+			"ethAddr": "0xed169CB49AAbe9c53795Bd1530152be0c42834bB",
+			"djtxAddr": "V-dijets187vfyejphtff6alm8k08v85cqveluzfvtmysht",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 175000000000000,
+					"locktime": 1688728973
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1691407373
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1694085773
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1696677773
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1699356173
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1701948173
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1704626573
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1707304973
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1709810573
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1712488973
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1715080973
+				},
+				{
+					"amount": 175000000000000,
+					"locktime": 1717759373
+				}
+			]
+		},
+		{
+			"ethAddr": "0x118335fa8ece8DA9bffa7A3E27f2EF12cF5CeA97",
+			"djtxAddr": "V-dijets1e6qk7tse2melcz9e2dtnvkjezetr6hglvu0v5h",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 1500000000000000,
+					"locktime": 1688728973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1691407373
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1694085773
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1696677773
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1699356173
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1701948173
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1704626573
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1707304973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1709810573
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1712488973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1715080973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1717759373
+				}
+			]
+		},
+		{
+			"ethAddr": "0x1187038b07AE123c25547444545174570b587BCE",
+			"djtxAddr": "V-dijets1s3k6udf9vsla30004uvdhf6p2lhs0v364y5svp",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 1500000000000000,
+					"locktime": 1688728973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1691407373
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1694085773
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1696677773
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1699356173
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1701948173
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1704626573
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1707304973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1709810573
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1712488973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1715080973
+				},
+				{
+					"amount": 1500000000000000,
+					"locktime": 1717759373
+				}
+			]
+		},
+		{
+			"ethAddr": "0x18A53Eaea0575141F975E7ECDeBAd7162D67AFD3",
+			"djtxAddr": "V-dijets1ap3lg68wcfc3c8w3h8zuzz7790rlzht6jzqc4t",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0xDcE25E5a79244442B4D875d7f032F4D82A1f0E6E",
+			"djtxAddr": "V-dijets1lv7des5xaaawx7zy86n7c8v8382ldtd9eajqcz",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0xb4124cEB3451635DAcedd11767f004d8a28c6eE7",
+			"djtxAddr": "V-dijets163yr65mhglrvu5wngu4qkw6lj4pqh2zggut3fk",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0x6E04B23a9Fa424289A10eef126b04Dc13B38069c",
+			"djtxAddr": "V-dijets1eg0gnn7q2uvk66kht7yqn8xtugz7uvutfk0txf",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0x3507A1131aba9D07714b76Eb8a245F434198690B",
+			"djtxAddr": "V-dijets1ggwu285vknzzjs2rqyvzyrkjd0guc5lfgam9qp",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0x2070D7F1b4052c14f31a0C65AD8E011A6cEc33A7",
+			"djtxAddr": "V-dijets1rrwvthn2cxpmhfx376hsrnx04me0s24ajsqgsq",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0x118335fa8ece8DA9bffa7A3E27f2EF12cF5CeA97",
+			"djtxAddr": "V-dijets1e6qk7tse2melcz9e2dtnvkjezetr6hglvu0v5h",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0x1187038b07AE123c25547444545174570b587BCE",
+			"djtxAddr": "V-dijets1s3k6udf9vsla30004uvdhf6p2lhs0v364y5svp",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0xE2E437A8da1b741fBa20Fc1302Bf20A2ACD6ae5b",
+			"djtxAddr": "V-dijets1cj0jm7hq990lua543xqx490kjhl78ywanwkpkw",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0xed169CB49AAbe9c53795Bd1530152be0c42834bB",
+			"djtxAddr": "V-dijets187vfyejphtff6alm8k08v85cqveluzfvtmysht",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		},
+		{
+			"ethAddr": "0x118335fa8ece8DA9bffa7A3E27f2EF12cF5CeA97",
+			"djtxAddr": "V-dijets1752gvfgnlt59afs8tudy72cx354chxcqz5egsf",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 800000000000000
+				}
+			]
+		}
+	],
+	"startTime": 1688728973,
+	"initialStakeDuration": 31536000,
+	"initialStakeDurationOffset": 54000,
+	"initialStakedFunds": [
+		"V-dijets1e6qk7tse2melcz9e2dtnvkjezetr6hglvu0v5h",
+		"V-dijets1s3k6udf9vsla30004uvdhf6p2lhs0v364y5svp",
+		"V-dijets1cj0jm7hq990lua543xqx490kjhl78ywanwkpkw",
+		"V-dijets187vfyejphtff6alm8k08v85cqveluzfvtmysht",
+		"V-dijets1752gvfgnlt59afs8tudy72cx354chxcqz5egsf"
+	],
+	"initialStakers": [
+		{
+			"nodeID": "NodeID-LbqzrSMKAssm5Ds2bJ8LPwymnGJbrybCN",
+			"rewardAddress": "V-dijets1e6qk7tse2melcz9e2dtnvkjezetr6hglvu0v5h",
+			"delegationFee": 200000
+		},
+		{
+			"nodeID": "NodeID-KnSQaB5tDy1rgZWHFdCHSwTTdNvRNkLBP",
+			"rewardAddress": "V-dijets1s3k6udf9vsla30004uvdhf6p2lhs0v364y5svp",
+			"delegationFee": 200000
+		},
+		{
+			"nodeID": "NodeID-Nh98zaRumrBz3K5i3SQG1T3WrhJv1Jxmb",
+			"rewardAddress": "V-dijets1cj0jm7hq990lua543xqx490kjhl78ywanwkpkw",
+			"delegationFee": 200000
+		},
+		{
+			"nodeID": "NodeID-4tsvZR6LEaVc8mbc5K4Kusji21YZDdk39",
+			"rewardAddress": "V-dijets187vfyejphtff6alm8k08v85cqveluzfvtmysht",
+			"delegationFee": 200000
+		},
+		{
+			"nodeID": "NodeID-L7rEYewk8URjAg3kp39zrYcfRk8hH14Y5",
+			"rewardAddress": "V-dijets1752gvfgnlt59afs8tudy72cx354chxcqz5egsf",
+			"delegationFee": 200000
+		}
+	],
+	"cChainGenesis": "{\"config\":{\"chainId\":98200,\"homesteadBlock\":0,\"daoForkBlock\":0,\"daoForkSupport\":true,\"eip150Block\":0,\"eip150Hash\":\"0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0\",\"eip155Block\":0,\"eip158Block\":0,\"byzantiumBlock\":0,\"constantinopleBlock\":0,\"petersburgBlock\":0,\"istanbulBlock\":0,\"muirGlacierBlock\":0,\"apricotPhase1BlockTimestamp\":0,\"apricotPhase2BlockTimestamp\":0,\"apricotPhase3BlockTimestamp\":0,\"apricotPhase4BlockTimestamp\":0,\"apricotPhase5BlockTimestamp\":0},\"nonce\":\"0x0\",\"timestamp\":\"0x0\",\"extraData\":\"0x00\",\"gasLimit\":\"0x5f5e100\",\"difficulty\":\"0x0\",\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"coinbase\":\"0x0000000000000000000000000000000000000000\",\"alloc\":{\"0100000000000000000000000000000000000000\":{\"code\":\"0x7300000000000000000000000000000000000000003014608060405260043610603d5760003560e01c80631e010439146042578063b6510bb314606e575b600080fd5b605c60048036036020811015605657600080fd5b503560b1565b60408051918252519081900360200190f35b818015607957600080fd5b5060af60048036036080811015608e57600080fd5b506001600160a01b03813516906020810135906040810135906060013560b6565b005b30cd90565b836001600160a01b031681836108fc8690811502906040516000604051808303818888878c8acf9550505050505015801560f4573d6000803e3d6000fd5b505050505056fea26469706673582212201eebce970fe3f5cb96bf8ac6ba5f5c133fc2908ae3dcd51082cfee8f583429d064736f6c634300060a0033\",\"balance\":\"0x0\"}},\"number\":\"0x0\",\"gasUsed\":\"0x0\",\"parentHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+	"message": "Always act in good faith with full transparency and accountability"
+}
