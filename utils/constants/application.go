@@ -6,8 +6,8 @@ package constants
 // Const variables to be exported
 const (
 	// PlatformName exports the name of the platform
-	PlatformName = "dijets"
+	PlatformName = "avalanche"
 
 	// AppName exports the name of the dijets application
-	AppName = "dijetsnodesgo"
+	AppName = "avalanchego"
 )

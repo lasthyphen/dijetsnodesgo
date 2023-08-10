@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 
 print_usage() {
-  printf "Usage: build_avalanche [OPTIONS]
+  printf "Usage: build_dijets [OPTIONS]
 
   Build avalanchego
 
@@ -25,7 +25,7 @@ while getopts 'r' flag; do
 done
 
 # Changes to the minimum golang version must also be replicated in
-# scripts/build_avalanche.sh (here)
+# scripts/build_dijets.sh (here)
 # scripts/local.Dockerfile
 # Dockerfile
 # README.md

@@ -11,10 +11,10 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	p2p "github.com/lasthyphen/dijetsnodesgo/proto/pb/p2p"
 	ips "github.com/lasthyphen/dijetsnodesgo/utils/ips"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockOutboundMsgBuilder is a mock of OutboundMsgBuilder interface.

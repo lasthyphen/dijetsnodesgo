@@ -10,9 +10,9 @@ package atomic
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	database "github.com/lasthyphen/dijetsnodesgo/database"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockSharedMemory is a mock of SharedMemory interface.

@@ -11,8 +11,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	block "github.com/lasthyphen/dijetsnodesgo/snow/engine/snowman/block"
 	gomock "github.com/golang/mock/gomock"
+	block "github.com/lasthyphen/dijetsnodesgo/snow/engine/snowman/block"
 )
 
 // MockStateSyncableVM is a mock of StateSyncableVM interface.

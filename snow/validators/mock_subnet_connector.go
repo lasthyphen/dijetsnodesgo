@@ -11,8 +11,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	gomock "github.com/golang/mock/gomock"
+	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 )
 
 // MockSubnetConnector is a mock of SubnetConnector interface.

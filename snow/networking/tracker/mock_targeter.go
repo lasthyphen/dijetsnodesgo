@@ -10,8 +10,8 @@ package tracker
 import (
 	reflect "reflect"
 
-	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	gomock "github.com/golang/mock/gomock"
+	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 )
 
 // MockTargeter is a mock of Targeter interface.

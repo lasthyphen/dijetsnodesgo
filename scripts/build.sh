@@ -38,7 +38,7 @@ go mod download
 build_args="$race"
 
 # Build avalanchego
-"$AVALANCHE_PATH"/scripts/build_avalanche.sh $build_args
+"$AVALANCHE_PATH"/scripts/build_dijets.sh $build_args
 
 # Build coreth
 "$AVALANCHE_PATH"/scripts/build_coreth.sh $build_args

@@ -11,10 +11,10 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	crypto "github.com/lasthyphen/dijetsnodesgo/utils/crypto"
 	txs "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockBuilder is a mock of Builder interface.

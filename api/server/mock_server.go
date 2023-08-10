@@ -11,8 +11,8 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	common "github.com/lasthyphen/dijetsnodesgo/snow/engine/common"
 	gomock "github.com/golang/mock/gomock"
+	common "github.com/lasthyphen/dijetsnodesgo/snow/engine/common"
 )
 
 // MockServer is a mock of Server interface.

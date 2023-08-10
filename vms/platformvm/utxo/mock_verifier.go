@@ -10,12 +10,12 @@ package utxo
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	djtx "github.com/lasthyphen/dijetsnodesgo/vms/components/djtx"
 	verify "github.com/lasthyphen/dijetsnodesgo/vms/components/verify"
 	state "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/state"
 	txs "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockVerifier is a mock of Verifier interface.

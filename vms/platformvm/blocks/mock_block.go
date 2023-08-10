@@ -10,10 +10,10 @@ package blocks
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 	txs "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockBlock is a mock of Block interface.

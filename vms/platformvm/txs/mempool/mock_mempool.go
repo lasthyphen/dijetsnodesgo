@@ -10,9 +10,9 @@ package mempool
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	txs "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockMempool is a mock of Mempool interface.

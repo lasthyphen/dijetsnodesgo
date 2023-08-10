@@ -12,11 +12,11 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	choices "github.com/lasthyphen/dijetsnodesgo/snow/choices"
 	snowman "github.com/lasthyphen/dijetsnodesgo/snow/consensus/snowman"
 	block "github.com/lasthyphen/dijetsnodesgo/vms/proposervm/block"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockPostForkBlock is a mock of PostForkBlock interface.

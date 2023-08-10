@@ -10,11 +10,11 @@ package executor
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	snowman "github.com/lasthyphen/dijetsnodesgo/snow/consensus/snowman"
 	blocks "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/blocks"
 	state "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/state"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockManager is a mock of Manager interface.

@@ -139,8 +139,8 @@ func getConsensusConfig(v *viper.Viper) dijets.Parameters {
 			MixedQueryNumPushVdr:    int(v.GetUint(SnowMixedQueryNumPushVdrKey)),
 			MixedQueryNumPushNonVdr: int(v.GetUint(SnowMixedQueryNumPushNonVdrKey)),
 		},
-		BatchSize: v.GetInt(SnowAvalancheBatchSizeKey),
-		Parents:   v.GetInt(SnowAvalancheNumParentsKey),
+		BatchSize: v.GetInt(SnowDijetsBatchSizeKey),
+		Parents:   v.GetInt(SnowDijetsNumParentsKey),
 	}
 }
 

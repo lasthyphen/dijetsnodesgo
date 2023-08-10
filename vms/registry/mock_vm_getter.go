@@ -10,9 +10,9 @@ package registry
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	vms "github.com/lasthyphen/dijetsnodesgo/vms"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockVMGetter is a mock of VMGetter interface.

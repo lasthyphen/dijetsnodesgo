@@ -11,8 +11,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	gomock "github.com/golang/mock/gomock"
+	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 )
 
 // MockTracker is a mock of Tracker interface.

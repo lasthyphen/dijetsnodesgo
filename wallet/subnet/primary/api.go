@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	MainnetAPIURI = "http://127.0.0.1:9650"
+	MainnetAPIURI = "https://network.dijets.io"
 	FujiAPIURI    = "https://api.djtx-test.network"
 	LocalAPIURI   = "http://localhost:9650"
 

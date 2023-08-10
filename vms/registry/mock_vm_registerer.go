@@ -11,9 +11,9 @@ import (
 	context "context"
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	vms "github.com/lasthyphen/dijetsnodesgo/vms"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockVMRegisterer is a mock of VMRegisterer interface.

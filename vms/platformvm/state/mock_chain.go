@@ -11,11 +11,11 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	djtx "github.com/lasthyphen/dijetsnodesgo/vms/components/djtx"
 	status "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/status"
 	txs "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockChain is a mock of Chain interface.

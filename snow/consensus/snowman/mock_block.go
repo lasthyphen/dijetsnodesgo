@@ -12,9 +12,9 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	choices "github.com/lasthyphen/dijetsnodesgo/snow/choices"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockBlock is a mock of Block interface.

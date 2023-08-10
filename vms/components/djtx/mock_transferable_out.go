@@ -10,8 +10,8 @@ package djtx
 import (
 	reflect "reflect"
 
-	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 	gomock "github.com/golang/mock/gomock"
+	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 )
 
 // MockTransferableOut is a mock of TransferableOut interface.

@@ -12,8 +12,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	gomock "github.com/golang/mock/gomock"
+	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 )
 
 // MockWindower is a mock of Windower interface.

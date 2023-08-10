@@ -10,8 +10,8 @@ package state
 import (
 	reflect "reflect"
 
-	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	gomock "github.com/golang/mock/gomock"
+	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 )
 
 // MockVersions is a mock of Versions interface.

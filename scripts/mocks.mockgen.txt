@@ -5,8 +5,8 @@ github.com/lasthyphen/dijetsnodesgo/message=OutboundMessage=message/mock_message
 github.com/lasthyphen/dijetsnodesgo/message=OutboundMsgBuilder=message/mock_outbound_message_builder.go
 github.com/lasthyphen/dijetsnodesgo/network/peer=GossipTracker=network/peer/mock_gossip_tracker.go
 github.com/lasthyphen/dijetsnodesgo/snow/consensus/snowman=Block=snow/consensus/snowman/mock_block.go
-github.com/lasthyphen/dijetsnodesgo/snow/engine/avalanche=Engine=snow/engine/avalanche/mock_engine.go
-github.com/lasthyphen/dijetsnodesgo/snow/engine/avalanche/vertex=DAGVM=snow/engine/avalanche/vertex/mock_vm.go
+github.com/lasthyphen/dijetsnodesgo/snow/engine/dijets=Engine=snow/engine/dijets/mock_engine.go
+github.com/lasthyphen/dijetsnodesgo/snow/engine/dijets/vertex=DAGVM=snow/engine/dijets/vertex/mock_vm.go
 github.com/lasthyphen/dijetsnodesgo/snow/engine/snowman=Engine=snow/engine/snowman/mock_engine.go
 github.com/lasthyphen/dijetsnodesgo/snow/engine/snowman/block=ChainVM=snow/engine/snowman/block/mocks/chain_vm.go
 github.com/lasthyphen/dijetsnodesgo/snow/engine/snowman/block=BuildBlockWithContextChainVM=snow/engine/snowman/block/mocks/build_block_with_context_vm.go

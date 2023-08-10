@@ -10,8 +10,8 @@ package fx
 import (
 	reflect "reflect"
 
-	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 	gomock "github.com/golang/mock/gomock"
+	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 )
 
 // MockFx is a mock of Fx interface.

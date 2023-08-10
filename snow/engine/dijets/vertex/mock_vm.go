@@ -12,13 +12,13 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	manager "github.com/lasthyphen/dijetsnodesgo/database/manager"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 	snowstorm "github.com/lasthyphen/dijetsnodesgo/snow/consensus/snowstorm"
 	common "github.com/lasthyphen/dijetsnodesgo/snow/engine/common"
 	version "github.com/lasthyphen/dijetsnodesgo/version"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockDAGVM is a mock of DAGVM interface.

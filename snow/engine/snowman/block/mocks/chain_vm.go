@@ -12,13 +12,13 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	manager "github.com/lasthyphen/dijetsnodesgo/database/manager"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 	snowman "github.com/lasthyphen/dijetsnodesgo/snow/consensus/snowman"
 	common "github.com/lasthyphen/dijetsnodesgo/snow/engine/common"
 	version "github.com/lasthyphen/dijetsnodesgo/version"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockChainVM is a mock of ChainVM interface.

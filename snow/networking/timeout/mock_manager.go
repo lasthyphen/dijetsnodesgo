@@ -11,10 +11,10 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	message "github.com/lasthyphen/dijetsnodesgo/message"
 	snow "github.com/lasthyphen/dijetsnodesgo/snow"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockManager is a mock of Manager interface.

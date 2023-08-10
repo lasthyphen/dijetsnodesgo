@@ -10,12 +10,12 @@ package state
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	versiondb "github.com/lasthyphen/dijetsnodesgo/database/versiondb"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	choices "github.com/lasthyphen/dijetsnodesgo/snow/choices"
 	logging "github.com/lasthyphen/dijetsnodesgo/utils/logging"
 	block "github.com/lasthyphen/dijetsnodesgo/vms/proposervm/block"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockState is a mock of State interface.

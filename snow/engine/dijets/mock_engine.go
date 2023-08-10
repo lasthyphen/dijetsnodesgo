@@ -12,12 +12,12 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
 	snow "github.com/lasthyphen/dijetsnodesgo/snow"
 	dijets "github.com/lasthyphen/dijetsnodesgo/snow/consensus/dijets"
 	common "github.com/lasthyphen/dijetsnodesgo/snow/engine/common"
 	version "github.com/lasthyphen/dijetsnodesgo/version"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockEngine is a mock of Engine interface.

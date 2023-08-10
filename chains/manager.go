@@ -530,7 +530,7 @@ func (m *manager) buildChain(chainParams ChainParameters, sb Subnet) (*chain, er
 	var chain *chain
 	switch vm := vm.(type) {
 	case vertex.DAGVM:
-		chain, err = m.createAvalancheChain(
+		chain, err = m.createDijetsChain(
 			ctx,
 			chainParams.GenesisData,
 			vdrs,
@@ -576,7 +576,7 @@ func (m *manager) AddRegistrant(r Registrant) {
 }
 
 // Create a DAG-based blockchain that uses Avalanche
-func (m *manager) createAvalancheChain(
+func (m *manager) createDijetsChain(
 	ctx *snow.ConsensusContext,
 	genesisData []byte,
 	vdrs,
