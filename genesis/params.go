@@ -63,8 +63,8 @@ func GetTxFeeConfig(networkID uint32) TxFeeConfig {
 	switch networkID {
 	case constants.MainnetID:
 		return MainnetParams.TxFeeConfig
-	case constants.TahoeID:
-		return TahoeParams.TxFeeConfig
+	case constants.LotharID:
+		return LotharParams.TxFeeConfig
 	case constants.LocalID:
 		return LocalParams.TxFeeConfig
 	default:
@@ -76,8 +76,8 @@ func GetStakingConfig(networkID uint32) StakingConfig {
 	switch networkID {
 	case constants.MainnetID:
 		return MainnetParams.StakingConfig
-	case constants.TahoeID:
-		return TahoeParams.StakingConfig
+	case constants.LotharID:
+		return LotharParams.StakingConfig
 	case constants.LocalID:
 		return LocalParams.StakingConfig
 	default:

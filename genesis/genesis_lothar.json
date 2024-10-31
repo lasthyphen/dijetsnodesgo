@@ -1,0 +1,76 @@
+{
+	"networkID": 5,
+	"allocations": [
+		{
+			"ethAddr": "0xd9544bbc2fb8a40e82dd42a515f06bd1912fe43f",
+			"djtxAddr": "V-lothar1aj84umsmpt94rfc847jp5mzn794xc7d85237ay",
+			"initialAmount": 0,
+			"unlockSchedule": [
+				{
+					"amount": 10000000000000000,
+					"locktime": 1633824000
+				}
+			]
+		},
+		{
+			"ethAddr": "0xd9544bbc2fb8a40e82dd42a515f06bd1912fe43f",
+			"djtxAddr": "V-lothar1l5d35hvxv5ux2ucyn2q7x9s64xqh9r0kg58pmz",
+			"initialAmount": 300000000000000000,
+			"unlockSchedule": [
+				{
+					"amount": 20000000000000000
+				},
+				{
+					"amount": 10000000000000000,
+					"locktime": 1633824000
+				}
+			]
+		},
+		{
+			"ethAddr": "0xd9544bbc2fb8a40e82dd42a515f06bd1912fe43f",
+			"djtxAddr": "V-lothar1qcr359f2d7vjwpgr4rmma4v8tg2m9mpzf9jqkf",
+			"initialAmount": 10000000000000000,
+			"unlockSchedule": [
+				{
+					"amount": 10000000000000000,
+					"locktime": 1633824000
+				}
+			]
+		}
+	],
+	"startTime": 1717760279,
+	"initialStakeDuration": 31536000,
+	"initialStakeDurationOffset": 5400,
+	"initialStakedFunds": [
+		"V-lothar1l5d35hvxv5ux2ucyn2q7x9s64xqh9r0kg58pmz"
+	],
+	"initialStakers": [
+		{
+			"nodeID": "NodeID-7Xhw2mDxuDS44j42TCB6U5579esbSt3Lg",
+			"rewardAddress": "V-lothar1l5d35hvxv5ux2ucyn2q7x9s64xqh9r0kg58pmz",
+			"delegationFee": 1000000
+		},
+		{
+			"nodeID": "NodeID-MFrZFVCXPv5iCn6M9K6XduxGTYp891xXZ",
+			"rewardAddress": "V-lothar1l5d35hvxv5ux2ucyn2q7x9s64xqh9r0kg58pmz",
+			"delegationFee": 500000
+		},
+		{
+			"nodeID": "NodeID-NFBbbJ4qCmNaCzeW7sxErhvWqvEQMnYcN",
+			"rewardAddress": "V-lothar1l5d35hvxv5ux2ucyn2q7x9s64xqh9r0kg58pmz",
+			"delegationFee": 250000
+		},
+		{
+			"nodeID": "NodeID-GWPcbFJZFfZreETSoWjPimr846mXEKCtu",
+			"rewardAddress": "V-lothar1l5d35hvxv5ux2ucyn2q7x9s64xqh9r0kg58pmz",
+			"delegationFee": 125000
+		},
+		{
+			"nodeID": "NodeID-P7oB2McjBGgW2NXXWVYjV8JEDFoW9xDE5",
+			"rewardAddress": "V-lothar1l5d35hvxv5ux2ucyn2q7x9s64xqh9r0kg58pmz",
+			"delegationFee": 62500
+		}
+	],
+	"cChainGenesis": "{\"config\":{\"chainId\":381932,\"homesteadBlock\":0,\"daoForkBlock\":0,\"daoForkSupport\":true,\"eip150Block\":0,\"eip150Hash\":\"0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0\",\"eip155Block\":0,\"eip158Block\":0,\"byzantiumBlock\":0,\"constantinopleBlock\":0,\"petersburgBlock\":0,\"istanbulBlock\":0,\"muirGlacierBlock\":0,\"apricotPhase1BlockTimestamp\":0,\"apricotPhase2BlockTimestamp\":0,\"apricotPhase3BlockTimestamp\":0,\"apricotPhase4BlockTimestamp\":0,\"apricotPhase5BlockTimestamp\":0},\"nonce\":\"0x0\",\"timestamp\":\"0x0\",\"extraData\":\"0x00\",\"gasLimit\":\"0x5f5e100\",\"difficulty\":\"0x0\",\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"coinbase\":\"0x0000000000000000000000000000000000000000\",\"alloc\":{\"0100000000000000000000000000000000000000\":{\"code\":\"0x7300000000000000000000000000000000000000003014608060405260043610603d5760003560e01c80631e010439146042578063b6510bb314606e575b600080fd5b605c60048036036020811015605657600080fd5b503560b1565b60408051918252519081900360200190f35b818015607957600080fd5b5060af60048036036080811015608e57600080fd5b506001600160a01b03813516906020810135906040810135906060013560b6565b005b30cd90565b836001600160a01b031681836108fc8690811502906040516000604051808303818888878c8acf9550505050505015801560f4573d6000803e3d6000fd5b505050505056fea26469706673582212201eebce970fe3f5cb96bf8ac6ba5f5c133fc2908ae3dcd51082cfee8f583429d064736f6c634300060a0033\",\"balance\":\"0x0\"}},\"number\":\"0x0\",\"gasUsed\":\"0x0\",\"parentHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+	"message": "hi dad"
+}

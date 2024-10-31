@@ -39,9 +39,9 @@ func TestValidateConfig(t *testing.T) {
 			networkID: 1,
 			config:    &MainnetConfig,
 		},
-		"tahoe": {
+		"lothar": {
 			networkID: 5,
-			config:    &TahoeConfig,
+			config:    &LotharConfig,
 		},
 		"local": {
 			networkID: 12345,
@@ -118,7 +118,7 @@ func TestValidateConfig(t *testing.T) {
 		"initial staked funds not in allocations": {
 			networkID: 5,
 			config: func() *Config {
-				thisConfig := TahoeConfig
+				thisConfig := LotharConfig
 				thisConfig.InitialStakedFunds = append(thisConfig.InitialStakedFunds, LocalConfig.InitialStakedFunds[0])
 				return &thisConfig
 			}(),
@@ -171,15 +171,15 @@ func TestGenesisFromFile(t *testing.T) {
 			customConfig: customGenesisConfigJSON,
 			err:          "cannot override genesis config for standard network mainnet (1)",
 		},
-		"testnet": {
-			networkID:    constants.TahoeID,
+		"lothar": {
+			networkID:    constants.LotharID,
 			customConfig: customGenesisConfigJSON,
-			err:          "cannot override genesis config for standard network tahoe (5)",
+			err:          "cannot override genesis config for standard network lothar (5)",
 		},
-		"testnet (with custom specified)": {
-			networkID:    constants.TahoeID,
+		"lothar (with custom specified)": {
+			networkID:    constants.LotharID,
 			customConfig: localGenesisConfigJSON, // won't load
-			err:          "cannot override genesis config for standard network tahoe (5)",
+			err:          "cannot override genesis config for standard network lothar (5)",
 		},
 		"local": {
 			networkID:    constants.LocalID,
@@ -256,9 +256,9 @@ func TestGenesisFromFlag(t *testing.T) {
 			networkID: constants.MainnetID,
 			err:       "cannot override genesis config for standard network mainnet (1)",
 		},
-		"testnet": {
-			networkID: constants.TahoeID,
-			err:       "cannot override genesis config for standard network tahoe (5)",
+		"lothar": {
+			networkID: constants.LotharID,
+			err:       "cannot override genesis config for standard network lothar (5)",
 		},
 		"local": {
 			networkID: constants.LocalID,
@@ -303,8 +303,8 @@ func TestGenesisFromFlag(t *testing.T) {
 				case constants.MainnetID:
 					genBytes, err = json.Marshal(&MainnetConfig)
 					require.NoError(err)
-				case constants.TahoeID:
-					genBytes, err = json.Marshal(&TahoeConfig)
+				case constants.LotharID:
+					genBytes, err = json.Marshal(&LotharConfig)
 					require.NoError(err)
 				case constants.LocalID:
 					genBytes, err = json.Marshal(&LocalConfig)
@@ -344,7 +344,7 @@ func TestGenesis(t *testing.T) {
 			expectedID: "2QWBywoaRDBk7Z1YmnGm4W2Mid5CUqBHGWdiHg45uRTJTQ8TDD",
 		},
 		{
-			networkID:  constants.TahoeID,
+			networkID:  constants.LotharID,
 			expectedID: "3pKmdq85ygWiRPvj6jjJhzrLrhygjdvefrP7awMUxcEGUH29s",
 		},
 		{
@@ -389,7 +389,7 @@ func TestVMGenesis(t *testing.T) {
 			},
 		},
 		{
-			networkID: constants.TahoeID,
+			networkID: constants.LotharID,
 			vmTest: []vmTest{
 				{
 					vmID:       constants.AVMID,
@@ -454,7 +454,7 @@ func TestDJTXAssetID(t *testing.T) {
 			expectedID: "2pjq58dnYTfrUJvvnC1uHDBP87DyP2oJj9uTmt3vdJg9Nhr9d4",
 		},
 		{
-			networkID:  constants.TahoeID,
+			networkID:  constants.LotharID,
 			expectedID: "2QpCJwPk3nzi1VqJEuaFA44WM2UUzraBXQyH6jMGLTLQhqoe4n",
 		},
 		{

@@ -62,43 +62,43 @@ var (
 
 	ApricotPhase3Times = map[uint32]time.Time{
 		constants.MainnetID: time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
-		constants.TahoeID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
+		constants.LotharID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
 	}
 	ApricotPhase3DefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 
 	ApricotPhase4Times = map[uint32]time.Time{
 		constants.MainnetID: time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
-		constants.TahoeID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
+		constants.LotharID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
 	}
 	ApricotPhase4DefaultTime     = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 	ApricotPhase4MinPChainHeight = map[uint32]uint64{
 		constants.MainnetID: 0,
-		constants.TahoeID:   0,
+		constants.LotharID:   0,
 	}
 	ApricotPhase4DefaultMinPChainHeight uint64
 
 	ApricotPhase5Times = map[uint32]time.Time{
 		constants.MainnetID: time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
-		constants.TahoeID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
+		constants.LotharID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
 	}
 	ApricotPhase5DefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 
 	ApricotPhase6Times = map[uint32]time.Time{
 		constants.MainnetID: time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
-		constants.TahoeID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
+		constants.LotharID:    time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
 	}
 	ApricotPhase6DefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 
 	BanffTimes = map[uint32]time.Time{
 		constants.MainnetID: time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
-		constants.TahoeID:    time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
+		constants.LotharID:    time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
 	}
 	BanffDefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 
 	// FIXME: update this before release
 	XChainMigrationTimes = map[uint32]time.Time{
 		constants.MainnetID: time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
-		constants.TahoeID:    time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
+		constants.LotharID:    time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
 	}
 	XChainMigrationDefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 )

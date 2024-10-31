@@ -14,17 +14,17 @@ import (
 // Const variables to be exported
 const (
 	MainnetID  uint32 = 1
-	TahoeID    uint32 = 5
+	LotharID    uint32 = 5
 	UnitTestID uint32 = 10
 	LocalID    uint32 = 12345
 
 	MainnetName  = "mainnet"
-	TahoeName    = "tahoe"
+	LotharName    = "lothar"
 	UnitTestName = "testing"
 	LocalName    = "local"
 
 	MainnetHRP  = "dijets"
-	TahoeHRP    = "tahoe"
+	LotharHRP    = "lothar"
 	UnitTestHRP = "testing"
 	LocalHRP    = "local"
 	FallbackHRP = "custom"
@@ -37,26 +37,26 @@ var (
 
 	NetworkIDToNetworkName = map[uint32]string{
 		MainnetID:  MainnetName,
-		TahoeID:    TahoeName,
+		LotharID:    LotharName,
 		UnitTestID: UnitTestName,
 		LocalID:    LocalName,
 	}
 	NetworkNameToNetworkID = map[string]uint32{
 		MainnetName:  MainnetID,
-		TahoeName:    TahoeID,
+		LotharName:    LotharID,
 		UnitTestName: UnitTestID,
 		LocalName:    LocalID,
 	}
 
 	NetworkIDToHRP = map[uint32]string{
 		MainnetID:  MainnetHRP,
-		TahoeID:    TahoeHRP,
+		LotharID:    LotharHRP,
 		UnitTestID: UnitTestHRP,
 		LocalID:    LocalHRP,
 	}
 	NetworkHRPToNetworkID = map[string]uint32{
 		MainnetHRP:  MainnetID,
-		TahoeHRP:    TahoeID,
+		LotharHRP:    LotharID,
 		UnitTestHRP: UnitTestID,
 		LocalHRP:    LocalID,
 	}

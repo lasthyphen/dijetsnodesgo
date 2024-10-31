@@ -148,7 +148,7 @@ var (
 
 	// TestnetConfig is the config that should be used to generate the testnet
 	// genesis.
-	TahoeConfig Config
+	LotharConfig Config
 
 	// LocalConfig is the config that should be used to generate a local
 	// genesis.
@@ -157,13 +157,13 @@ var (
 
 func init() {
 	unparsedMainnetConfig := UnparsedConfig{}
-	unparsedTahoeConfig := UnparsedConfig{}
+	unparsedLotharConfig := UnparsedConfig{}
 	unparsedLocalConfig := UnparsedConfig{}
 
 	errs := wrappers.Errs{}
 	errs.Add(
 		json.Unmarshal(mainnetGenesisConfigJSON, &unparsedMainnetConfig),
-		json.Unmarshal(tahoeGenesisConfigJSON, &unparsedTahoeConfig),
+		json.Unmarshal(lotharGenesisConfigJSON, &unparsedLotharConfig),
 		json.Unmarshal(localGenesisConfigJSON, &unparsedLocalConfig),
 	)
 	if errs.Errored() {
@@ -174,9 +174,9 @@ func init() {
 	errs.Add(err)
 	MainnetConfig = mainnetConfig
 
-	tahoeConfig, err := unparsedTahoeConfig.Parse()
+	lotharConfig, err := unparsedLotharConfig.Parse()
 	errs.Add(err)
-	TahoeConfig = tahoeConfig
+	LotharConfig = lotharConfig
 
 	localConfig, err := unparsedLocalConfig.Parse()
 	errs.Add(err)
@@ -191,8 +191,8 @@ func GetConfig(networkID uint32) *Config {
 	switch networkID {
 	case constants.MainnetID:
 		return &MainnetConfig
-	case constants.TahoeID:
-		return &TahoeConfig
+	case constants.LotharID:
+		return &LotharConfig
 	case constants.LocalID:
 		return &LocalConfig
 	default:

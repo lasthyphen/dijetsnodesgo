@@ -19,7 +19,7 @@ func getIPs(networkID uint32) []string {
 			"20.108.178.171:9657",
 			"20.108.178.171:9659",
 		}
-	case constants.TahoeID:
+	case constants.LotharID:
 		return []string{
 			"127.0.0.4:9651",
 			"127.0.0.4:9666",
@@ -43,7 +43,7 @@ func getNodeIDs(networkID uint32) []string {
 			"NodeID-4tsvZR6LEaVc8mbc5K4Kusji21YZDdk39",
 			"NodeID-L7rEYewk8URjAg3kp39zrYcfRk8hH14Y5",
 		}
-	case constants.TahoeID:
+	case constants.LotharID:
 		return []string{
 			"NodeID-7Xhw2mDxuDS44j42TCB6U5579esbSt3Lg",
 			"NodeID-MFrZFVCXPv5iCn6M9K6XduxGTYp891xXZ",
