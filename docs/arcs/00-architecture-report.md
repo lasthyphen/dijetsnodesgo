@@ -1,8 +1,8 @@
-# Mini-Chains — M0 Architecture Report
+# Arcs — M0 Architecture Report
 
 Status: M0 (reconnaissance + design decisions). This document describes what the
 repository **actually** contains (verified by reading the code on branch
-`feature/minichains`), and the extension strategy chosen as a result.
+`feature/arcs`), and the extension strategy chosen as a result.
 
 ## A. Repository and version
 
@@ -15,11 +15,11 @@ repository **actually** contains (verified by reading the code on branch
 | Tests | `go test ./...`; e2e (`scripts/tests.e2e.sh`) depends on an external avalanche-network-runner download and is not usable offline. |
 | Lint | `scripts/lint.sh` (golangci-lint). |
 
-### Pre-existing baseline test failures (before any mini-chain change)
+### Pre-existing baseline test failures (before any Arc change)
 
 These fail on the untouched baseline and are caused by fixture strings that
 were not updated during the X/P→V/M rename and genesis edits. They are **not**
-caused by mini-chain work and are tracked as baseline:
+caused by Arc work and are tracked as baseline:
 
 - `vms/platformvm`: `TestExportKey`, `TestImportKey`, `TestGetBalance`, `TestGetStake` (expect `P-` prefix).
 - `vms/avm`: `TestServiceGetTxJSON_*` (9 tests), `TestVMFormat` (expect `X-` prefix / old IDs).
@@ -130,13 +130,13 @@ All other packages under `chains`, `vms/platformvm/...`, `vms/avm/...`,
 
 ## Design decisions
 
-- **DD-1 — No new native chain, no new M-chain tx type.** A mini-chain *is* a
+- **DD-1 — No new native chain, no new M-chain tx type.** An Arc *is* a
   blockchain created by `CreateChainTx` on a dedicated, permissioned
   (non-transformed) subnet. The M-chain is the authoritative registry.
 - **DD-2 — Execution: AVM on the DAG engine** (the same engine as the
-  V-chain). No new VM. Each mini-chain's AVM genesis defines its own fee asset
+  V-chain). No new VM. Each Arc's AVM genesis defines its own fee asset
   (first genesis asset, `vms/avm/vm.go:initGenesis`). Atomic import/export is
-  rejected across subnets (`verify.SameSubnet`), so mini-chain state cannot
+  rejected across subnets (`verify.SameSubnet`), so Arc state cannot
   leak into V/M/U through shared memory.
 - **DD-3 — Security profile `permissioned_committee`**: committee = current
   subnet validators recorded on the M-chain; enforced by the consensus engine
@@ -149,8 +149,8 @@ All other packages under `chains`, `vms/platformvm/...`, `vms/avm/...`,
 - **DD-5 — Registry view is computed on demand from M-chain state**, sorted
   by chain ID for stable pagination. No separate index is introduced; the
   "rebuild" of the derived view is a pure function of M-chain state.
-- **DD-6 — API**: new JSON-RPC service `minichain` mounted at
-  `/ext/bc/M/minichain` (the M-chain owns the authoritative data), versioned
+- **DD-6 — API**: new JSON-RPC service `arc` mounted at
+  `/ext/bc/M/arc` (the M-chain owns the authoritative data), versioned
   (`apiVersion: "v1"`, `schemaVersion: 1`). Read-only. Creation goes through
   existing, signed M-chain transactions (wallet / `platform.*`); a client-side
   workflow helper adds validation and duplicate detection.
@@ -171,16 +171,16 @@ All other packages under `chains`, `vms/platformvm/...`, `vms/avm/...`,
 ## Recommended extension points (used)
 
 - `chains/manager.go` — additive `LocalChainStatus(es)` accessors.
-- `vms/platformvm/vm.go:CreateHandlers` — mount `/minichain`.
-- `vms/platformvm/config/config.go` — optional `MiniChainObserver`.
+- `vms/platformvm/vm.go:CreateHandlers` — mount `/arc`.
+- `vms/platformvm/config/config.go` — optional `ArcObserver`.
 - `node/node.go` — construct observer, register as chain registrant.
-- New package `minichain/` — descriptor, lifecycle, policy, service, observer,
+- New package `arc/` — descriptor, lifecycle, policy, service, observer,
   workflow.
 
 ## Implementation risks
 
 1. Chain-manager lock ordering: the M-chain API holds the M-chain lock; other
-   chains take the M-chain lock through `validators.State`. The mini-chain API
+   chains take the M-chain lock through `validators.State`. The Arc API
    therefore never holds the M-chain lock while calling into other chains.
 2. Staking-disabled networks silently remove committee enforcement → must be
    surfaced in every descriptor.
@@ -189,7 +189,7 @@ All other packages under `chains`, `vms/platformvm/...`, `vms/avm/...`,
    fails at initialisation on every node; must be caught client-side and
    reported as `FAILED` locally.
 5. Chain names are not unique at the protocol level.
-6. `--whitelisted-subnets` is static; tracking a new mini-chain needs a node
+6. `--whitelisted-subnets` is static; tracking a new Arc needs a node
    restart.
 7. The shipped `local` genesis has validator periods that expired in 2023;
    local multi-node testing requires a custom genesis with a recent

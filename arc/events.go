@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	"fmt"
@@ -7,11 +7,11 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/ids"
 )
 
-// EventType identifies the kind of a mini-chain event.
+// EventType identifies the kind of an Arc event.
 type EventType string
 
 const (
-	// EventRegisteredObserved: this node observed a registered mini-chain it
+	// EventRegisteredObserved: this node observed a registered Arc it
 	// tracks for the first time since it started.
 	EventRegisteredObserved         EventType = "registered_observed"
 	EventInitialisationStarted      EventType = "initialisation_started"
@@ -27,7 +27,7 @@ const (
 // opposed to authoritative M-chain state.
 const SourceLocalObservation = "local-observation"
 
-// Event is a locally observed mini-chain event. Events are derived from
+// Event is a locally observed Arc event. Events are derived from
 // observations; they are not authoritative state transitions. Authoritative
 // registration and membership changes are M-chain transactions and can be
 // consumed through the M-chain index (/ext/index/M/block).
@@ -59,7 +59,7 @@ type EventPage struct {
 	// OldestSeq is the oldest sequence number still retained (0 if empty).
 	OldestSeq uint64 `json:"oldestSeq"`
 	// Truncated is true if events after the requested cursor were evicted;
-	// the consumer must resynchronise from minichain.list.
+	// the consumer must resynchronise from arc.list.
 	Truncated bool `json:"truncated"`
 }
 

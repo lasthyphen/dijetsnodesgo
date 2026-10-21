@@ -1,4 +1,4 @@
-# Mini-Chains — Design
+# Arcs — Design
 
 Documents in this directory:
 
@@ -11,9 +11,14 @@ Documents in this directory:
 | 04 | [Security review](04-security-review.md) | M7 |
 | 05 | [Implementation report](05-implementation-report.md) | M7 |
 
-## 1. What a mini-chain is
+**Naming.** The product name is **Arc** (plural **Arcs**): chains that people
+own and manage to track portfolio-related records, submit authorised
+transactions and enforce spending or transfer policies. The original RFC
+calls them "mini-chains"; that was a placeholder and means Arc throughout.
 
-A mini-chain is a blockchain created by an M-chain `CreateChainTx` on a
+## 1. What an Arc is
+
+An Arc is a blockchain created by an M-chain `CreateChainTx` on a
 **dedicated, permissioned subnet** (`CreateSubnetTx`, not transformed), running
 the **AVM on the DAG consensus engine** (the V-chain's engine), with a
 committee of primary-network validators assigned by `AddSubnetValidatorTx`.
@@ -27,12 +32,12 @@ rules was changed. No fourth native chain was added.
 | Ownership | `CreateSubnetTx.Owner` (secp256k1 threshold multisig) | M-chain consensus |
 | Genesis | `CreateChainTx.GenesisData`; descriptor exposes `sha256` | M-chain consensus |
 | Committee | current subnet validators (`AddSubnetValidatorTx`/`RemoveSubnetValidatorTx`) | M-chain consensus |
-| Execution & state | AVM instance, own DB prefix and data dir | mini-chain committee consensus |
+| Execution & state | AVM instance, own DB prefix and data dir | Arc committee consensus |
 | Lifecycle / health | derived per node | local observation |
 
 ## 2. Descriptor (schema version 1)
 
-Implemented in `minichain/descriptor.go` (`Descriptor`, `BuildDescriptor`).
+Implemented in `arc/descriptor.go` (`Descriptor`, `BuildDescriptor`).
 
 | RFC field | Descriptor field | Source |
 | --- | --- | --- |
@@ -45,13 +50,13 @@ Implemented in `minichain/descriptor.go` (`Descriptor`, `BuildDescriptor`).
 | `created_at` | `createdAt` = `null`, `unavailable.createdAt` | **not recorded** in M-chain state (no tx→block-time index) |
 | `created_by` | `createdBy{chainTxID, subnetTxID}` | tx IDs |
 | `validator_policy` | `validatorPolicy{profile, enforcement, params, provides}` | derived |
-| `validators` | `validators{currentCount,pendingCount,currentWeight,source}`; full list via `minichain.validators` | M-chain |
+| `validators` | `validators{currentCount,pendingCount,currentWeight,source}`; full list via `arc.validators` | M-chain |
 | `network_id` | `networkID` | node |
 | `rpc_endpoints` | `rpcEndpoints` (relative paths, only when this node serves the chain) | local |
 | `explorer_url` | `explorerURL` = `null` (not configured) | — |
 | `privacy_mode` | `privacyMode` = `"public"` | declared |
 | `capabilities` | `capabilities` | derived from VM/fx |
-| `protocol_version` | `protocolVersion` = `"minichain/1"` | constant |
+| `protocol_version` | `protocolVersion` = `"arc/1"` | constant |
 | `metadata_version` | `metadataVersion` = `1`, plus `schemaVersion` = `1` | constant |
 
 Unavailable data is `null` and listed in `unavailable` with a reason code; it
@@ -67,7 +72,7 @@ is never fabricated.
 
 ## 3. Lifecycle
 
-Implemented in `minichain/lifecycle.go` (`Derive`, `ValidTransition`).
+Implemented in `arc/lifecycle.go` (`Derive`, `ValidTransition`).
 
 ```
              ┌────────────┐  retry / restart  ┌─────────┐
@@ -115,7 +120,7 @@ Derivation (first match wins):
   transitions need no recovery: after a restart the M-chain re-queues every
   registered chain of tracked subnets and the derived lifecycle restarts at
   `PENDING`.
-- **Externally visible**: every state, via `minichain.get/list/health` and as
+- **Externally visible**: every state, via `arc.get/list/health` and as
   local events.
 - **Per-chain stop/restart is not implemented**: the chain manager has no
   per-chain stop; stopping a chain locally would not change authoritative
@@ -124,12 +129,12 @@ Derivation (first match wins):
 ## 4. Registry and creation workflow
 
 ### Registry
-The registry **is** M-chain state. `vms/platformvm/minichain_registry.go`
-is a read-only adapter (`minichain.Registry`) that reads committed state under
+The registry **is** M-chain state. `vms/platformvm/arc_registry.go`
+is a read-only adapter (`arc.Registry`) that reads committed state under
 the M-chain lock. The query view is a pure function of that state, sorted by
 chain ID; there is no secondary index to rebuild or to diverge.
 
-### Workflow (`minichain/workflow`)
+### Workflow (`arc/workflow`)
 1. Client-side validation: naming policy (`ValidateName`), VM must be AVM,
    genesis parsed exactly as the AVM will parse it (`ValidateAVMGenesis`),
    committee size ≥ `minCommitteeSize`, no duplicate or zero-weight members.
@@ -145,7 +150,7 @@ chain ID; there is no secondary index to rebuild or to diverge.
 7. `CreateChainTx`.
 
 Every step is an owner-signed M-chain transaction decided by consensus. No
-API handler writes M-chain state. `minichain.getCreationStatus` reports the
+API handler writes M-chain state. `arc.getCreationStatus` reports the
 stage from M-chain tx statuses.
 
 **Not protocol-enforced** (client policy only): name uniqueness, naming
@@ -155,13 +160,13 @@ bypasses the workflow can register a malformed chain; nodes then report it as
 
 ## 5. Validator policy and security profiles
 
-Implemented in `minichain/policy.go`.
+Implemented in `arc/policy.go`.
 
 | Profile | Operational | Provides |
 | --- | --- | --- |
 | `permissioned_committee` | yes | registration security (M-chain), consensus security (committee) |
 | `expanded_committee` | no | — (reserved) |
-| `shared_primary_security` | no | — (needs a protocol change; the primary network does not validate or verify mini-chain state) |
+| `shared_primary_security` | no | — (needs a protocol change; the primary network does not validate or verify Arc state) |
 | `permissionless_subnet` | no | registration security only; recognised for reporting |
 
 `permissioned_committee`:
@@ -191,13 +196,13 @@ Implemented in `minichain/policy.go`.
 
 ### Finality
 Primary-network finality covers registration and committee membership only.
-Mini-chain finality is decided solely by its committee; the M-chain neither
-checkpoints nor verifies mini-chain state.
+Arc finality is decided solely by its committee; the M-chain neither
+checkpoints nor verifies Arc state.
 
 ## 6. Observation, events and statistics (M5)
 
-`minichain/observer.go` is registered as a chain-manager registrant and as
-decision/consensus acceptor. For every mini-chain this node runs it keeps
+`arc/observer.go` is registered as a chain-manager registrant and as
+decision/consensus acceptor. For every Arc this node runs it keeps
 acceptance counters and samples engine health every 5 s; the poll loop
 re-derives lifecycles and appends **observed** events to a bounded buffer.
 Nothing is persisted; nothing is authoritative. Details, metrics and the

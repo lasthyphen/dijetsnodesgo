@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	"bytes"
@@ -45,7 +45,7 @@ func (r *fakeRegistry) Chains(context.Context) ([]Record, uint64, error) {
 
 func (r *fakeRegistry) Chain(_ context.Context, chainID ids.ID) (Record, uint64, error) {
 	if chainID == constants.PlatformChainID {
-		return Record{}, 0, ErrNotAMiniChain
+		return Record{}, 0, ErrNotAnArc
 	}
 	for _, rec := range r.records {
 		if rec.ChainID == chainID {
@@ -216,7 +216,7 @@ func TestServiceList(t *testing.T) {
 	h := newHarness(t)
 
 	var reply ListReply
-	resp := h.call(t, "minichain.list", map[string]interface{}{}, &reply)
+	resp := h.call(t, "arc.list", map[string]interface{}{}, &reply)
 	require.Nil(resp.Error)
 	require.Equal(APIVersion, reply.APIVersion)
 	require.Equal(SchemaVersion, reply.SchemaVersion)
@@ -264,7 +264,7 @@ func TestServiceListPaginationAndFilters(t *testing.T) {
 	cursor := ""
 	for i := 0; i < 5; i++ {
 		var reply ListReply
-		resp := h.call(t, "minichain.list", map[string]interface{}{"limit": 1, "cursor": cursor}, &reply)
+		resp := h.call(t, "arc.list", map[string]interface{}{"limit": 1, "cursor": cursor}, &reply)
 		require.Nil(resp.Error)
 		for _, c := range reply.Chains {
 			seen = append(seen, c.Descriptor.ID)
@@ -279,21 +279,21 @@ func TestServiceListPaginationAndFilters(t *testing.T) {
 	require.True(sort.SliceIsSorted(seen, func(i, j int) bool { return bytes.Compare(seen[i][:], seen[j][:]) < 0 }))
 
 	var filtered ListReply
-	require.Nil(h.call(t, "minichain.list", map[string]interface{}{"lifecycle": "FAILED"}, &filtered).Error)
+	require.Nil(h.call(t, "arc.list", map[string]interface{}{"lifecycle": "FAILED"}, &filtered).Error)
 	require.Len(filtered.Chains, 1)
 	require.Equal("failed", filtered.Chains[0].Descriptor.Name)
 	require.Equal(3, filtered.Counts.Registered)
 
 	var byOwner ListReply
-	require.Nil(h.call(t, "minichain.list", map[string]interface{}{"owner": "local1remoteowner"}, &byOwner).Error)
+	require.Nil(h.call(t, "arc.list", map[string]interface{}{"owner": "local1remoteowner"}, &byOwner).Error)
 	require.Len(byOwner.Chains, 1)
 	require.Equal("remote", byOwner.Chains[0].Descriptor.Name)
 
-	resp := h.call(t, "minichain.list", map[string]interface{}{"limit": maxPageSize + 1}, nil)
+	resp := h.call(t, "arc.list", map[string]interface{}{"limit": maxPageSize + 1}, nil)
 	require.NotNil(resp.Error)
 	require.Equal(int(CodeInvalidParams), resp.Error.Code)
 
-	resp = h.call(t, "minichain.list", map[string]interface{}{"lifecycle": "SLEEPING"}, nil)
+	resp = h.call(t, "arc.list", map[string]interface{}{"lifecycle": "SLEEPING"}, nil)
 	require.NotNil(resp.Error)
 	require.Equal("invalid_lifecycle", resp.Error.Data.Reason)
 }
@@ -302,21 +302,21 @@ func TestServiceGetErrors(t *testing.T) {
 	require := require.New(t)
 	h := newHarness(t)
 
-	resp := h.call(t, "minichain.get", map[string]string{"chainID": ids.GenerateTestID().String()}, nil)
+	resp := h.call(t, "arc.get", map[string]string{"chainID": ids.GenerateTestID().String()}, nil)
 	require.NotNil(resp.Error)
 	require.Equal(int(CodeNotFound), resp.Error.Code)
 
-	resp = h.call(t, "minichain.get", map[string]string{"chainID": "M"}, nil)
+	resp = h.call(t, "arc.get", map[string]string{"chainID": "M"}, nil)
 	require.NotNil(resp.Error)
-	require.Equal(int(CodeNotMiniChain), resp.Error.Code)
+	require.Equal(int(CodeNotArc), resp.Error.Code)
 
-	resp = h.call(t, "minichain.get", map[string]string{}, nil)
+	resp = h.call(t, "arc.get", map[string]string{}, nil)
 	require.NotNil(resp.Error)
 	require.Equal(int(CodeInvalidParams), resp.Error.Code)
 
 	// Internal errors never leak details.
 	h.registry.failChains = true
-	resp = h.call(t, "minichain.list", map[string]interface{}{}, nil)
+	resp = h.call(t, "arc.list", map[string]interface{}{}, nil)
 	require.NotNil(resp.Error)
 	require.Equal(int(CodeInternal), resp.Error.Code)
 	require.NotContains(resp.Error.Message, "/secret/path")
@@ -327,7 +327,7 @@ func TestServiceValidatorsStatsHealth(t *testing.T) {
 	h := newHarness(t)
 
 	var vdrs ValidatorsReply
-	require.Nil(h.call(t, "minichain.validators", map[string]string{"chainID": h.active.ChainID.String()}, &vdrs).Error)
+	require.Nil(h.call(t, "arc.validators", map[string]string{"chainID": h.active.ChainID.String()}, &vdrs).Error)
 	require.Len(vdrs.Members, 3)
 	require.Equal(MembershipSource, vdrs.MembershipSource)
 	require.Equal(SourceLocalObservation, vdrs.ConnectivitySource)
@@ -337,13 +337,13 @@ func TestServiceValidatorsStatsHealth(t *testing.T) {
 	require.Equal(EnforcedByConsensus, vdrs.Policy.Enforcement)
 
 	var remote ValidatorsReply
-	require.Nil(h.call(t, "minichain.validators", map[string]string{"chainID": h.remote.ChainID.String()}, &remote).Error)
+	require.Nil(h.call(t, "arc.validators", map[string]string{"chainID": h.remote.ChainID.String()}, &remote).Error)
 	require.False(remote.Summary.ConnectivityObservable)
 	require.Nil(remote.Summary.ConnectedCount)
 	require.Nil(remote.Members[0].Connected)
 
 	var stats StatsReply
-	require.Nil(h.call(t, "minichain.stats", map[string]string{"chainID": h.active.ChainID.String()}, &stats).Error)
+	require.Nil(h.call(t, "arc.stats", map[string]string{"chainID": h.active.ChainID.String()}, &stats).Error)
 	require.NotNil(stats.AcceptedTxs)
 	require.Equal(uint64(3), uint64(*stats.AcceptedTxs))
 	require.Equal(uint64(2), uint64(*stats.AcceptedContainers))
@@ -354,12 +354,12 @@ func TestServiceValidatorsStatsHealth(t *testing.T) {
 	require.NotContains(stats.Unavailable, "lastAcceptedAt")
 
 	var remoteStats StatsReply
-	require.Nil(h.call(t, "minichain.stats", map[string]string{"chainID": h.remote.ChainID.String()}, &remoteStats).Error)
+	require.Nil(h.call(t, "arc.stats", map[string]string{"chainID": h.remote.ChainID.String()}, &remoteStats).Error)
 	require.Nil(remoteStats.AcceptedTxs)
 	require.Equal(UnavailableNotTracked, remoteStats.Unavailable["acceptedTxs"])
 
 	var health HealthReply
-	require.Nil(h.call(t, "minichain.health", map[string]string{"chainID": h.failed.ChainID.String()}, &health).Error)
+	require.Nil(h.call(t, "arc.health", map[string]string{"chainID": h.failed.ChainID.String()}, &health).Error)
 	require.Equal(Failed, health.Observation.Lifecycle)
 	require.False(health.Engine.Checked)
 	require.True(health.Dependencies.MChainBootstrapped)
@@ -370,29 +370,29 @@ func TestServiceCapabilitiesAndCreationStatus(t *testing.T) {
 	h := newHarness(t)
 
 	var caps CapabilitiesReply
-	require.Nil(h.call(t, "minichain.capabilities", map[string]string{}, &caps).Error)
+	require.Nil(h.call(t, "arc.capabilities", map[string]string{}, &caps).Error)
 	require.Equal(Methods, caps.Methods)
 	require.Nil(caps.Chain)
 	require.Contains(caps.SupportedVMs, constants.AVMID)
 
-	require.Nil(h.call(t, "minichain.capabilities", map[string]string{"chainID": h.active.ChainID.String()}, &caps).Error)
+	require.Nil(h.call(t, "arc.capabilities", map[string]string{"chainID": h.active.ChainID.String()}, &caps).Error)
 	require.NotNil(caps.Chain)
 	require.NotEmpty(caps.Chain.APIs)
 
 	subnetTx := h.active.SubnetID
 	h.registry.txs[subnetTx] = TxCommitted
 	var status CreationStatusReply
-	require.Nil(h.call(t, "minichain.getCreationStatus", map[string]string{"subnetTxID": subnetTx.String()}, &status).Error)
+	require.Nil(h.call(t, "arc.getCreationStatus", map[string]string{"subnetTxID": subnetTx.String()}, &status).Error)
 	require.Equal(StageSubnetRegistered, status.Stage)
 
 	h.registry.txs[h.active.ChainID] = TxProcessing
-	require.Nil(h.call(t, "minichain.getCreationStatus", map[string]string{
+	require.Nil(h.call(t, "arc.getCreationStatus", map[string]string{
 		"subnetTxID": subnetTx.String(), "chainTxID": h.active.ChainID.String(),
 	}, &status).Error)
 	require.Equal(StageChainPending, status.Stage)
 
 	h.registry.txs[h.active.ChainID] = TxCommitted
-	require.Nil(h.call(t, "minichain.getCreationStatus", map[string]string{
+	require.Nil(h.call(t, "arc.getCreationStatus", map[string]string{
 		"subnetTxID": subnetTx.String(), "chainTxID": h.active.ChainID.String(),
 	}, &status).Error)
 	require.Equal(StageRegistered, status.Stage)
@@ -401,7 +401,7 @@ func TestServiceCapabilitiesAndCreationStatus(t *testing.T) {
 
 	// A chain registered on a different subnet is rejected.
 	h.registry.txs[h.failed.SubnetID] = TxCommitted
-	resp := h.call(t, "minichain.getCreationStatus", map[string]string{
+	resp := h.call(t, "arc.getCreationStatus", map[string]string{
 		"subnetTxID": h.failed.SubnetID.String(), "chainTxID": h.active.ChainID.String(),
 	}, nil)
 	require.NotNil(resp.Error)
@@ -413,7 +413,7 @@ func TestObserverEventsFromPoll(t *testing.T) {
 	h := newHarness(t)
 
 	var events EventsReply
-	require.Nil(h.call(t, "minichain.events", map[string]interface{}{}, &events).Error)
+	require.Nil(h.call(t, "arc.events", map[string]interface{}{}, &events).Error)
 	// Each tracked chain is first observed, followed by the event for the
 	// state it was first observed in.
 	firstTypes := map[ids.ID][]EventType{}
@@ -439,7 +439,7 @@ func TestObserverEventsFromPoll(t *testing.T) {
 	h.observer.Poll(context.Background())
 
 	var next EventsReply
-	require.Nil(h.call(t, "minichain.events", map[string]interface{}{"after": events.NextCursor}, &next).Error)
+	require.Nil(h.call(t, "arc.events", map[string]interface{}{"after": events.NextCursor}, &next).Error)
 	types := []EventType{}
 	for _, e := range next.Events {
 		types = append(types, e.Type)

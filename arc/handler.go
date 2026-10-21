@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	"net/http"
@@ -8,12 +8,12 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/utils/json"
 )
 
-// ServiceName is the JSON-RPC service name: methods are "minichain.<method>".
-const ServiceName = "minichain"
+// ServiceName is the JSON-RPC service name: methods are "arc.<method>".
+const ServiceName = "arc"
 
 // Endpoint is the extension under which the service is mounted on the
-// M-chain: /ext/bc/M/minichain.
-const Endpoint = "/minichain"
+// M-chain: /ext/bc/M/arc.
+const Endpoint = "/arc"
 
 // NewHandler returns the JSON-RPC handler serving [s].
 func NewHandler(s *Service) (http.Handler, error) {

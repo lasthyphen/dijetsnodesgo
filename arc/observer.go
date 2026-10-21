@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	"context"
@@ -29,8 +29,8 @@ const (
 	healthLockAttempts    = 5
 	healthLockRetryPeriod = 20 * time.Millisecond
 
-	decisionAcceptorName  = "minichain-observer-decisions"
-	consensusAcceptorName = "minichain-observer-containers"
+	decisionAcceptorName  = "arc-observer-decisions"
+	consensusAcceptorName = "arc-observer-containers"
 )
 
 var (
@@ -59,7 +59,7 @@ type observedChain struct {
 	committeeKey string
 }
 
-// Evaluation is the derived state of one tracked mini-chain, produced by the
+// Evaluation is the derived state of one tracked Arc, produced by the
 // service for the observer's poll loop.
 type Evaluation struct {
 	ChainID      ids.ID
@@ -69,7 +69,7 @@ type Evaluation struct {
 	CommitteeKey string
 }
 
-// Evaluator derives the state of tracked mini-chains. Implemented by Service.
+// Evaluator derives the state of tracked Arcs. Implemented by Service.
 type Evaluator interface {
 	EvaluateTracked(ctx context.Context) (registered int, evals []Evaluation, err error)
 }
@@ -86,7 +86,7 @@ type ObserverConfig struct {
 	Params                 PolicyParams
 }
 
-// Observer collects local, non-authoritative observations about mini-chains
+// Observer collects local, non-authoritative observations about Arcs
 // running on this node: acceptance statistics, engine health and lifecycle
 // transitions. It never writes consensus state.
 type Observer struct {
@@ -140,7 +140,7 @@ func NewObserver(config ObserverConfig) (*Observer, error) {
 	if err != nil {
 		return nil, err
 	}
-	interceptor, err := metric.NewAPIInterceptor("minichain_api", config.Registerer)
+	interceptor, err := metric.NewAPIInterceptor("arc_api", config.Registerer)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (o *Observer) RegisterChain(_ string, engine common.Engine) {
 		o.consensus.RegisterAcceptor(ctx.ChainID, consensusAcceptorName, (*consensusAcceptor)(o), false),
 	)
 	if errs.Errored() {
-		o.log.Warn("couldn't register mini-chain acceptors",
+		o.log.Warn("couldn't register Arc acceptors",
 			zap.Stringer("chainID", ctx.ChainID),
 			zap.Error(errs.Err),
 		)
@@ -349,7 +349,7 @@ func (o *Observer) safePoll() {
 	defer func() {
 		if r := recover(); r != nil {
 			o.metrics.pollPanics.Inc()
-			o.log.Error("mini-chain observer poll panicked",
+			o.log.Error("Arc observer poll panicked",
 				zap.Any("panic", r),
 			)
 		}
@@ -377,7 +377,7 @@ func (o *Observer) Poll(ctx context.Context) {
 	}
 	registered, evals, err := evaluator.EvaluateTracked(ctx)
 	if err != nil {
-		o.log.Debug("mini-chain evaluation failed", zap.Error(err))
+		o.log.Debug("Arc evaluation failed", zap.Error(err))
 		return
 	}
 	o.record(registered, evals)
@@ -413,14 +413,14 @@ func (o *Observer) sampleHealth(ctx context.Context, c *observedChain) {
 }
 
 // checkEngine runs the engine health check with the chain lock held. A panic
-// in the check is contained and reported as unhealthy: observing a mini-chain
+// in the check is contained and reported as unhealthy: observing an Arc
 // must never take down the node.
 func (o *Observer) checkEngine(ctx context.Context, c *observedChain) (healthy bool) {
 	defer c.ctx.Lock.Unlock()
 	defer func() {
 		if r := recover(); r != nil {
 			o.metrics.healthCheckPanics.Inc()
-			o.log.Error("mini-chain engine health check panicked",
+			o.log.Error("Arc engine health check panicked",
 				zap.Stringer("chainID", c.ctx.ChainID),
 				zap.Any("panic", r),
 			)
@@ -429,7 +429,7 @@ func (o *Observer) checkEngine(ctx context.Context, c *observedChain) (healthy b
 	}()
 	_, err := c.engine.HealthCheck(ctx)
 	if err != nil {
-		o.log.Debug("mini-chain engine unhealthy",
+		o.log.Debug("Arc engine unhealthy",
 			zap.Stringer("chainID", c.ctx.ChainID),
 			zap.Error(err),
 		)
@@ -457,7 +457,7 @@ func (o *Observer) record(registered int, evals []Evaluation) {
 		} else if prevLifecycle != e.Lifecycle {
 			if !ValidTransition(prevLifecycle, e.Lifecycle) {
 				o.metrics.invalidTransitions.Inc()
-				o.log.Warn("unexpected mini-chain lifecycle transition",
+				o.log.Warn("unexpected Arc lifecycle transition",
 					zap.Stringer("chainID", e.ChainID),
 					zap.String("from", string(prevLifecycle)),
 					zap.String("to", string(e.Lifecycle)),
@@ -543,7 +543,7 @@ func (o *Observer) Events(after uint64, limit int) EventPage {
 	return o.events.page(o.bootID, after, limit)
 }
 
-// Registered returns the number of registered mini-chains seen by the last
+// Registered returns the number of registered Arcs seen by the last
 // poll.
 func (o *Observer) Registered() int {
 	o.lock.RLock()
@@ -566,17 +566,17 @@ type observerMetrics struct {
 }
 
 func newObserverMetrics(reg prometheus.Registerer) (*observerMetrics, error) {
-	const namespace = "minichain"
+	const namespace = "arc"
 	m := &observerMetrics{
 		registered: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      "registered",
-			Help:      "Number of mini-chains registered on the M-chain, as of the last poll",
+			Help:      "Number of Arcs registered on the M-chain, as of the last poll",
 		}),
 		tracked: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      "tracked_by_lifecycle",
-			Help:      "Number of mini-chains tracked by this node, by locally observed lifecycle",
+			Help:      "Number of Arcs tracked by this node, by locally observed lifecycle",
 		}, []string{"lifecycle"}),
 		transitions: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: namespace,
@@ -591,22 +591,22 @@ func newObserverMetrics(reg prometheus.Registerer) (*observerMetrics, error) {
 		acceptedTxs: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Name:      "accepted_txs",
-			Help:      "Number of transactions accepted across all mini-chains run by this node",
+			Help:      "Number of transactions accepted across all Arcs run by this node",
 		}),
 		acceptedContainers: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Name:      "accepted_containers",
-			Help:      "Number of vertices/blocks accepted across all mini-chains run by this node",
+			Help:      "Number of vertices/blocks accepted across all Arcs run by this node",
 		}),
 		healthChecksSkipped: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Name:      "health_checks_skipped",
-			Help:      "Number of mini-chain engine health samples skipped because the chain was busy",
+			Help:      "Number of Arc engine health samples skipped because the chain was busy",
 		}),
 		healthCheckPanics: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Name:      "health_check_panics",
-			Help:      "Number of mini-chain engine health checks that panicked and were contained",
+			Help:      "Number of Arc engine health checks that panicked and were contained",
 		}),
 		pollPanics: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
@@ -616,13 +616,13 @@ func newObserverMetrics(reg prometheus.Registerer) (*observerMetrics, error) {
 		initDuration: prometheus.NewHistogram(prometheus.HistogramOpts{
 			Namespace: namespace,
 			Name:      "initialisation_duration_seconds",
-			Help:      "Time from first observing a tracked mini-chain as PENDING or INITIALISING to observing it operational, at poll resolution",
+			Help:      "Time from first observing a tracked Arc as PENDING or INITIALISING to observing it operational, at poll resolution",
 			Buckets:   []float64{5, 10, 30, 60, 120, 300, 600, 1800, 3600},
 		}),
 		initFailures: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Name:      "initialisation_failures",
-			Help:      "Number of tracked mini-chains whose initialisation failed on this node",
+			Help:      "Number of tracked Arcs whose initialisation failed on this node",
 		}),
 	}
 	errs := wrappers.Errs{}

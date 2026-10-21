@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	"context"
@@ -18,14 +18,14 @@ import (
 )
 
 const (
-	// APIVersion is the version of the minichain.* JSON-RPC API.
+	// APIVersion is the version of the arc.* JSON-RPC API.
 	APIVersion = "v1"
 	// SchemaVersion is the version of the descriptor/response schemas.
 	// Bump on any backwards-incompatible change.
 	SchemaVersion uint32 = 1
-	// ProtocolVersion identifies the mini-chain protocol: a CreateChainTx on
+	// ProtocolVersion identifies the Arc protocol: a CreateChainTx on
 	// a dedicated permissioned subnet, registered on the M-chain.
-	ProtocolVersion = "minichain/1"
+	ProtocolVersion = "arc/1"
 	// MetadataVersion is the version of the metadata derivation rules.
 	MetadataVersion uint32 = 1
 
@@ -46,22 +46,22 @@ type PrivacyMode string
 const PrivacyPublic PrivacyMode = "public"
 
 var (
-	ErrNotFound          = errors.New("mini-chain not found")
-	ErrNotAMiniChain     = errors.New("chain is not a mini-chain")
-	errEmptyName         = errors.New("name must not be empty")
-	errNameTooLong       = fmt.Errorf("name must be at most %d characters", MaxNameLen)
-	errNameFirstChar     = errors.New("name must start with an ASCII letter")
-	errNameIllegalChar   = errors.New("name may contain only ASCII letters, digits and single spaces")
-	errNameEdgeSpace     = errors.New("name must not end with a space")
-	errNameDoubleSpace   = errors.New("name must not contain consecutive spaces")
-	errEmptyGenesis      = errors.New("genesis must not be empty")
-	errGenesisTooLarge   = errors.New("genesis exceeds 1 MiB")
-	errUnsupportedVM     = errors.New("vm is not supported for mini-chains")
-	maxGenesisBytes      = 1 << 20
-	supportedMiniChainVM = constants.AVMID
+	ErrNotFound        = errors.New("Arc not found")
+	ErrNotAnArc        = errors.New("chain is not an Arc")
+	errEmptyName       = errors.New("name must not be empty")
+	errNameTooLong     = fmt.Errorf("name must be at most %d characters", MaxNameLen)
+	errNameFirstChar   = errors.New("name must start with an ASCII letter")
+	errNameIllegalChar = errors.New("name may contain only ASCII letters, digits and single spaces")
+	errNameEdgeSpace   = errors.New("name must not end with a space")
+	errNameDoubleSpace = errors.New("name must not contain consecutive spaces")
+	errEmptyGenesis    = errors.New("genesis must not be empty")
+	errGenesisTooLarge = errors.New("genesis exceeds 1 MiB")
+	errUnsupportedVM   = errors.New("vm is not supported for Arcs")
+	maxGenesisBytes    = 1 << 20
+	supportedArcVM     = constants.AVMID
 )
 
-// ValidateName applies the mini-chain naming policy. It is stricter than the
+// ValidateName applies the Arc naming policy. It is stricter than the
 // protocol rule (ASCII letters, digits and spaces, at most 128 characters).
 // Names are not unique: the protocol does not enforce uniqueness.
 func ValidateName(name string) error {
@@ -91,7 +91,7 @@ func ValidateName(name string) error {
 // specific parsing is done by the VM-aware workflow before submission.
 func ValidateGenesisEnvelope(vmID ids.ID, genesis []byte) error {
 	switch {
-	case vmID != supportedMiniChainVM:
+	case vmID != supportedArcVM:
 		return fmt.Errorf("%w: %s", errUnsupportedVM, vmID)
 	case len(genesis) == 0:
 		return errEmptyGenesis
@@ -101,7 +101,7 @@ func ValidateGenesisEnvelope(vmID ids.ID, genesis []byte) error {
 	return nil
 }
 
-// GenesisHash returns the canonical genesis hash of a mini-chain.
+// GenesisHash returns the canonical genesis hash of an Arc.
 func GenesisHash(genesis []byte) [32]byte {
 	return sha256.Sum256(genesis)
 }
@@ -111,12 +111,12 @@ func FormatGenesisHash(h [32]byte) string {
 	return "sha256:" + hex.EncodeToString(h[:])
 }
 
-// SupportedVMs lists the VMs accepted for new mini-chains.
+// SupportedVMs lists the VMs accepted for new Arcs.
 func SupportedVMs() []ids.ID {
-	return []ids.ID{supportedMiniChainVM}
+	return []ids.ID{supportedArcVM}
 }
 
-// Owner is the public, M-chain recorded owner of a mini-chain's subnet. Only
+// Owner is the public, M-chain recorded owner of an Arc's subnet. Only
 // addresses are exposed; no key material exists in M-chain state.
 type Owner struct {
 	Threshold uint32   `json:"threshold"`
@@ -134,7 +134,7 @@ func (o Owner) Contains(address string) bool {
 	return false
 }
 
-// Record is a mini-chain's authoritative registration as read from the
+// Record is an Arc's authoritative registration as read from the
 // M-chain state.
 type Record struct {
 	ChainID          ids.ID
@@ -176,10 +176,10 @@ type Registry interface {
 	// Bootstrapped reports whether the M-chain finished bootstrapping. Before
 	// that, registration data may be incomplete.
 	Bootstrapped() bool
-	// Chains returns every mini-chain sorted by chain ID, and the M-chain
+	// Chains returns every Arc sorted by chain ID, and the M-chain
 	// height the data was read at.
 	Chains(ctx context.Context) ([]Record, uint64, error)
-	// Chain returns ErrNotFound if [chainID] is unknown and ErrNotAMiniChain
+	// Chain returns ErrNotFound if [chainID] is unknown and ErrNotAnArc
 	// if it is a primary network chain.
 	Chain(ctx context.Context, chainID ids.ID) (Record, uint64, error)
 	// Committee returns current and pending members of [subnetID].
@@ -192,7 +192,7 @@ type Registry interface {
 	LookupChain(alias string) (ids.ID, error)
 }
 
-// Registration describes the authoritative registration of a mini-chain.
+// Registration describes the authoritative registration of an Arc.
 type Registration struct {
 	Status                 string `json:"status"`
 	Authority              string `json:"authority"`
@@ -207,7 +207,7 @@ type ValidatorSummary struct {
 	Source        string `json:"source"`
 }
 
-// PolicyView is the security profile of a mini-chain.
+// PolicyView is the security profile of an Arc.
 type PolicyView struct {
 	Profile     Profile      `json:"profile"`
 	Enforcement Enforcement  `json:"enforcement"`
@@ -215,7 +215,7 @@ type PolicyView struct {
 	Provides    []string     `json:"provides"`
 }
 
-// CreatedBy identifies the transactions that created a mini-chain.
+// CreatedBy identifies the transactions that created an Arc.
 type CreatedBy struct {
 	// ChainTxID is the CreateChainTx ID. It equals the chain ID.
 	ChainTxID ids.ID `json:"chainTxID"`
@@ -223,7 +223,7 @@ type CreatedBy struct {
 	SubnetTxID ids.ID `json:"subnetTxID"`
 }
 
-// Descriptor is the versioned description of a mini-chain. Every field is
+// Descriptor is the versioned description of an Arc. Every field is
 // derived from authoritative M-chain state, except RPCEndpoints which
 // reflects what this node serves.
 type Descriptor struct {

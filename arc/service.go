@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	"bytes"
@@ -33,13 +33,13 @@ const (
 	MembershipSource = RegistryAuthority
 )
 
-// JSON-RPC error codes returned by the minichain service. They are stable
+// JSON-RPC error codes returned by the arc service. They are stable
 // across API versions.
 const (
 	CodeInternal      json2.ErrorCode = -32000
 	CodeInvalidParams json2.ErrorCode = -32602
 	CodeNotFound      json2.ErrorCode = -32004
-	CodeNotMiniChain  json2.ErrorCode = -32005
+	CodeNotArc        json2.ErrorCode = -32005
 	CodeUnavailable   json2.ErrorCode = -32010
 	CodeBusy          json2.ErrorCode = -32029
 )
@@ -58,7 +58,7 @@ func apiError(code json2.ErrorCode, reason, msg string) *json2.Error {
 	}
 }
 
-// Service is the minichain.* JSON-RPC service. All methods are read-only.
+// Service is the arc.* JSON-RPC service. All methods are read-only.
 type Service struct {
 	log      logging.Logger
 	registry Registry
@@ -66,7 +66,7 @@ type Service struct {
 	limiter  chan struct{}
 }
 
-// NewService returns the minichain service and registers it as the
+// NewService returns the arc service and registers it as the
 // observer's evaluator.
 func NewService(log logging.Logger, registry Registry, observer *Observer) *Service {
 	s := &Service{
@@ -99,7 +99,7 @@ func (s *Service) begin(r *http.Request) (context.Context, func(), error) {
 }
 
 func (s *Service) internal(method string, err error) error {
-	s.log.Warn("minichain API request failed",
+	s.log.Warn("arc API request failed",
 		zap.String("method", method),
 		zap.Error(err),
 	)
@@ -109,9 +109,9 @@ func (s *Service) internal(method string, err error) error {
 func (s *Service) mapRegistryErr(method string, err error) error {
 	switch {
 	case errors.Is(err, ErrNotFound):
-		return apiError(CodeNotFound, "not_found", "mini-chain not found")
-	case errors.Is(err, ErrNotAMiniChain):
-		return apiError(CodeNotMiniChain, "not_a_minichain", "chain is a primary network chain, not a mini-chain")
+		return apiError(CodeNotFound, "not_found", "Arc not found")
+	case errors.Is(err, ErrNotAnArc):
+		return apiError(CodeNotArc, "not_an_arc", "chain is a primary network chain, not an Arc")
 	default:
 		return s.internal(method, err)
 	}
@@ -128,7 +128,7 @@ func (s *Service) resolve(alias string) (ids.ID, error) {
 	return chainID, nil
 }
 
-// Observation is this node's local, non-authoritative view of a mini-chain.
+// Observation is this node's local, non-authoritative view of an Arc.
 type Observation struct {
 	Lifecycle Lifecycle `json:"lifecycle"`
 	// Registered: authoritative, from M-chain state.
@@ -144,7 +144,7 @@ type Observation struct {
 	Source        string     `json:"source"`
 }
 
-// ChainView combines authoritative and observed data of one mini-chain.
+// ChainView combines authoritative and observed data of one Arc.
 type ChainView struct {
 	Descriptor  Descriptor  `json:"descriptor"`
 	Observation Observation `json:"observation"`
@@ -289,7 +289,7 @@ func envelope() Envelope {
 	return Envelope{APIVersion: APIVersion, SchemaVersion: SchemaVersion}
 }
 
-// ListArgs are the arguments to minichain.list.
+// ListArgs are the arguments to arc.list.
 type ListArgs struct {
 	Lifecycle string `json:"lifecycle"`
 	Owner     string `json:"owner"`
@@ -304,22 +304,22 @@ type ListArgs struct {
 
 // Counts have explicitly defined meanings, see each field.
 type Counts struct {
-	// Registered: mini-chains registered in M-chain state (authoritative).
+	// Registered: Arcs registered in M-chain state (authoritative).
 	Registered int `json:"registered"`
-	// Tracked: registered mini-chains this node is configured to run.
+	// Tracked: registered Arcs this node is configured to run.
 	Tracked int `json:"tracked"`
-	// Operational: tracked mini-chains in normal operation on this node.
+	// Operational: tracked Arcs in normal operation on this node.
 	Operational int `json:"operational"`
-	// Healthy: tracked mini-chains whose health inputs are all satisfied.
+	// Healthy: tracked Arcs whose health inputs are all satisfied.
 	Healthy int `json:"healthy"`
-	// ByLifecycle: local lifecycle of every registered mini-chain. Chains
+	// ByLifecycle: local lifecycle of every registered Arc. Chains
 	// this node does not run are counted as UNKNOWN.
 	ByLifecycle map[Lifecycle]int `json:"byLifecycle"`
 	// Matched: chains matching the request filters.
 	Matched int `json:"matched"`
 }
 
-// ListReply is the reply of minichain.list.
+// ListReply is the reply of arc.list.
 type ListReply struct {
 	Envelope
 	Chains       []ChainView `json:"chains"`
@@ -356,7 +356,7 @@ func lifecycleValid(l Lifecycle) bool {
 	return false
 }
 
-// List returns a page of registered mini-chains ordered by chain ID.
+// List returns a page of registered Arcs ordered by chain ID.
 func (s *Service) List(r *http.Request, args *ListArgs, reply *ListReply) error {
 	ctx, done, err := s.begin(r)
 	if err != nil {
@@ -454,18 +454,18 @@ func (s *Service) List(r *http.Request, args *ListArgs, reply *ListReply) error 
 	return nil
 }
 
-// ChainArgs identify a mini-chain by ID or alias.
+// ChainArgs identify an Arc by ID or alias.
 type ChainArgs struct {
 	ChainID string `json:"chainID"`
 }
 
-// GetReply is the reply of minichain.get.
+// GetReply is the reply of arc.get.
 type GetReply struct {
 	Envelope
 	ChainView
 }
 
-// Get returns the descriptor and observation of one mini-chain.
+// Get returns the descriptor and observation of one Arc.
 func (s *Service) Get(r *http.Request, args *ChainArgs, reply *GetReply) error {
 	ctx, done, err := s.begin(r)
 	if err != nil {
@@ -526,7 +526,7 @@ func summarise(eval CommitteeEvaluation) CommitteeSummary {
 	return sum
 }
 
-// ValidatorsReply is the reply of minichain.validators.
+// ValidatorsReply is the reply of arc.validators.
 type ValidatorsReply struct {
 	Envelope
 	ChainID            ids.ID           `json:"chainID"`
@@ -584,7 +584,7 @@ func (s *Service) Validators(r *http.Request, args *ChainArgs, reply *Validators
 	return nil
 }
 
-// StatsReply is the reply of minichain.stats. Every value is a local
+// StatsReply is the reply of arc.stats. Every value is a local
 // observation of the answering node since [ObservedSince]; null values are
 // unavailable, with the reason in [Unavailable].
 type StatsReply struct {
@@ -668,7 +668,7 @@ type Dependencies struct {
 	ObserverLastPoll   *time.Time `json:"observerLastPoll"`
 }
 
-// HealthReply is the reply of minichain.health.
+// HealthReply is the reply of arc.health.
 type HealthReply struct {
 	Envelope
 	ChainID      ids.ID           `json:"chainID"`
@@ -679,7 +679,7 @@ type HealthReply struct {
 	Dependencies Dependencies     `json:"dependencies"`
 }
 
-// Health returns the lifecycle and health inputs of one mini-chain.
+// Health returns the lifecycle and health inputs of one Arc.
 func (s *Service) Health(r *http.Request, args *ChainArgs, reply *HealthReply) error {
 	ctx, done, err := s.begin(r)
 	if err != nil {
@@ -726,7 +726,7 @@ type ChainCapabilities struct {
 	APIs            []string    `json:"apis"`
 }
 
-// CapabilitiesReply is the reply of minichain.capabilities.
+// CapabilitiesReply is the reply of arc.capabilities.
 type CapabilitiesReply struct {
 	Envelope
 	ProtocolVersion string             `json:"protocolVersion"`
@@ -742,14 +742,14 @@ type CapabilitiesReply struct {
 
 // Methods lists every method of the service.
 var Methods = []string{
-	"minichain.list",
-	"minichain.get",
-	"minichain.validators",
-	"minichain.stats",
-	"minichain.health",
-	"minichain.capabilities",
-	"minichain.getCreationStatus",
-	"minichain.events",
+	"arc.list",
+	"arc.get",
+	"arc.validators",
+	"arc.stats",
+	"arc.health",
+	"arc.capabilities",
+	"arc.getCreationStatus",
+	"arc.events",
 }
 
 // Capabilities describes the service and, optionally, one chain.
@@ -793,7 +793,7 @@ func (s *Service) Capabilities(r *http.Request, args *CapabilitiesArgs, reply *C
 	return nil
 }
 
-// CreationStatusArgs are the arguments to minichain.getCreationStatus.
+// CreationStatusArgs are the arguments to arc.getCreationStatus.
 type CreationStatusArgs struct {
 	SubnetTxID     string   `json:"subnetTxID"`
 	ChainTxID      string   `json:"chainTxID"`
@@ -817,7 +817,7 @@ const (
 	StageRegistered       = "REGISTERED"
 )
 
-// CreationStatusReply is the reply of minichain.getCreationStatus.
+// CreationStatusReply is the reply of arc.getCreationStatus.
 type CreationStatusReply struct {
 	Envelope
 	Stage       string       `json:"stage"`
@@ -907,13 +907,13 @@ func (s *Service) GetCreationStatus(r *http.Request, args *CreationStatusArgs, r
 	return nil
 }
 
-// EventsArgs are the arguments to minichain.events.
+// EventsArgs are the arguments to arc.events.
 type EventsArgs struct {
 	After json.Uint64 `json:"after"`
 	Limit json.Uint32 `json:"limit"`
 }
 
-// EventsReply is the reply of minichain.events.
+// EventsReply is the reply of arc.events.
 type EventsReply struct {
 	Envelope
 	EventPage

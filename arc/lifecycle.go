@@ -1,11 +1,11 @@
-package minichain
+package arc
 
 import (
 	"github.com/lasthyphen/dijetsnodesgo/chains"
 	"github.com/lasthyphen/dijetsnodesgo/snow"
 )
 
-// Lifecycle is the lifecycle state of a mini-chain as observed by a single
+// Lifecycle is the lifecycle state of an Arc as observed by a single
 // node. It is derived on demand from authoritative registration (M-chain
 // state) and this node's chain manager and engine. It is never persisted and
 // is never consensus state.

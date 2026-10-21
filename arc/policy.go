@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	"time"
@@ -18,7 +18,7 @@ const (
 	ExpandedCommittee Profile = "expanded_committee"
 	// SharedPrimarySecurity: declared for future use. Not operational. The
 	// current protocol does not let the primary network validate or verify
-	// mini-chain state, so this profile cannot be offered.
+	// Arc state, so this profile cannot be offered.
 	SharedPrimarySecurity Profile = "shared_primary_security"
 	// PermissionlessSubnet: the chain's subnet was transformed into a
 	// permissionless subnet. Recognised but not supported by this prototype.
@@ -93,10 +93,10 @@ var Profiles = []ProfileInfo{
 		Description: "Committee of primary-network validators selected by the chain owner. Membership is M-chain state; the chain's DAG consensus samples only committee members.",
 		Limitations: []string{
 			"consensus security is bounded by the committee, not by the primary network",
-			"a committee holding enough weight can finalise any state on the mini-chain",
+			"a committee holding enough weight can finalise any state on the Arc",
 			"members must opt in by tracking the subnet; non-participating members reduce liveness",
 			"not enforced when the network runs with staking disabled",
-			"no checkpointing of mini-chain state to the M-chain",
+			"no checkpointing of Arc state to the M-chain",
 		},
 	},
 	{
@@ -110,7 +110,7 @@ var Profiles = []ProfileInfo{
 		Profile:     SharedPrimarySecurity,
 		Operational: false,
 		Provides:    []string{},
-		Description: "Reserved: requires the primary network to validate or verify mini-chain state, which the protocol does not support.",
+		Description: "Reserved: requires the primary network to validate or verify Arc state, which the protocol does not support.",
 		Limitations: []string{"not implemented", "requires a protocol change"},
 	},
 	{
@@ -118,7 +118,7 @@ var Profiles = []ProfileInfo{
 		Operational: false,
 		Provides:    []string{PropertyRegistrationSecurity},
 		Description: "Chain on a subnet transformed by TransformSubnetTx. Recognised for reporting only.",
-		Limitations: []string{"not supported by the mini-chain prototype"},
+		Limitations: []string{"not supported by the Arc prototype"},
 	},
 }
 

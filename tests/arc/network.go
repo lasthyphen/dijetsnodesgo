@@ -1,11 +1,11 @@
-//go:build minichain_e2e
+//go:build arc_e2e
 
-// Package minichaine2e runs a real 5-node staking network locally and
-// exercises mini-chains end to end. Run with:
+// Package arce2e runs a real 5-node staking network locally and
+// exercises Arcs end to end. Run with:
 //
 //	./scripts/build_dijets.sh
-//	go test -tags minichain_e2e -timeout 60m -v ./tests/minichain/
-package minichaine2e
+//	go test -tags arc_e2e -timeout 60m -v ./tests/arc/
+package arce2e
 
 import (
 	"context"
@@ -85,14 +85,14 @@ func repoRoot(t *testing.T) string {
 
 func newNetwork(t *testing.T) *network {
 	root := repoRoot(t)
-	binary := os.Getenv("MINICHAIN_NODE_BINARY")
+	binary := os.Getenv("ARC_NODE_BINARY")
 	if binary == "" {
 		binary = filepath.Join(root, "build", "dijetsnodesgo")
 	}
 	_, err := os.Stat(binary)
 	require.NoError(t, err, "build the node first: ./scripts/build_dijets.sh")
 
-	dir, err := os.MkdirTemp("", "minichain-e2e-")
+	dir, err := os.MkdirTemp("", "arc-e2e-")
 	require.NoError(t, err)
 	t.Logf("network directory (kept for inspection): %s", dir)
 
@@ -130,7 +130,7 @@ func (n *network) writeGenesis() {
 	require.NoError(n.t, json.Unmarshal(raw, &g))
 	g["networkID"] = networkID
 	g["startTime"] = time.Now().Add(-time.Minute).Unix()
-	g["message"] = "minichain e2e"
+	g["message"] = "arc e2e"
 	out, err := json.MarshalIndent(g, "", "  ")
 	require.NoError(n.t, err)
 	n.genesisPath = filepath.Join(n.dir, "genesis.json")

@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/lasthyphen/dijetsnodesgo/arc"
 	"github.com/lasthyphen/dijetsnodesgo/ids"
-	"github.com/lasthyphen/dijetsnodesgo/minichain"
 	"github.com/lasthyphen/dijetsnodesgo/utils/constants"
 	"github.com/lasthyphen/dijetsnodesgo/utils/formatting/address"
 	"github.com/lasthyphen/dijetsnodesgo/vms/avm"
@@ -18,9 +18,9 @@ func testGenesis(t *testing.T, memo string) []byte {
 	addr, err := address.FormatBech32(constants.GetHRP(constants.UnitTestID), ids.GenerateTestShortID().Bytes())
 	require.NoError(t, err)
 	genesis, err := BuildAVMGenesis(constants.UnitTestID, map[string]avm.AssetDefinition{
-		"MINI": {
-			Name:         "Mini Token",
-			Symbol:       "MINI",
+		"ARC": {
+			Name:         "Arc Token",
+			Symbol:       "ARC",
 			Denomination: 9,
 			Memo:         memo,
 			InitialState: map[string][]interface{}{
@@ -39,7 +39,7 @@ func TestAVMGenesisValidation(t *testing.T) {
 	b := testGenesis(t, "0x02")
 	require.NoError(ValidateAVMGenesis(a))
 	require.NoError(ValidateAVMGenesis(b))
-	require.NotEqual(minichain.GenesisHash(a), minichain.GenesisHash(b), "distinct memos give distinct genesis")
+	require.NotEqual(arc.GenesisHash(a), arc.GenesisHash(b), "distinct memos give distinct genesis")
 
 	require.Error(ValidateAVMGenesis([]byte("not a genesis")))
 	require.Error(ValidateAVMGenesis(nil))

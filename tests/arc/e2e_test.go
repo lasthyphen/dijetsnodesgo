@@ -1,6 +1,6 @@
-//go:build minichain_e2e
+//go:build arc_e2e
 
-package minichaine2e
+package arce2e
 
 import (
 	"context"
@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/lasthyphen/dijetsnodesgo/api/info"
+	"github.com/lasthyphen/dijetsnodesgo/arc"
+	"github.com/lasthyphen/dijetsnodesgo/arc/workflow"
 	"github.com/lasthyphen/dijetsnodesgo/genesis"
 	"github.com/lasthyphen/dijetsnodesgo/ids"
-	"github.com/lasthyphen/dijetsnodesgo/minichain"
-	"github.com/lasthyphen/dijetsnodesgo/minichain/workflow"
 	"github.com/lasthyphen/dijetsnodesgo/snow/choices"
 	"github.com/lasthyphen/dijetsnodesgo/utils/constants"
 	"github.com/lasthyphen/dijetsnodesgo/utils/crypto"
@@ -33,13 +33,13 @@ import (
 )
 
 const (
-	assetAlias  = "MINI"
+	assetAlias  = "ARC"
 	txTimeout   = 2 * time.Minute
 	stallWindow = 30 * time.Second
 	activeWait  = 4 * time.Minute
 )
 
-type miniChain struct {
+type testArc struct {
 	name     string
 	subnetID ids.ID
 	chainID  ids.ID
@@ -58,7 +58,7 @@ func buildGenesis(t *testing.T, memo string) []byte {
 	require.NoError(t, err)
 	g, err := workflow.BuildAVMGenesis(networkID, map[string]avm.AssetDefinition{
 		assetAlias: {
-			Name:         "Mini Chain Token",
+			Name:         "Arc Token",
 			Symbol:       assetAlias,
 			Denomination: 9,
 			Memo:         memo,
@@ -72,7 +72,7 @@ func buildGenesis(t *testing.T, memo string) []byte {
 	return g
 }
 
-// chainWallet returns a wallet for an AVM mini-chain served by [uri].
+// chainWallet returns a wallet for an AVM Arc served by [uri].
 func chainWallet(t *testing.T, uri string, chainID ids.ID, kc *secp256k1fx.Keychain) (x.Wallet, ids.ID) {
 	ctx := ctxWithTimeout(t, time.Minute)
 	infoClient := info.NewClient(uri)
@@ -105,10 +105,10 @@ func balance(t *testing.T, uri string, chainID, assetID ids.ID, addr ids.ShortID
 	return uint64(reply.Balance)
 }
 
-func awaitLifecycle(t *testing.T, nd *node, chainID ids.ID, want minichain.Lifecycle) *minichain.HealthReply {
+func awaitLifecycle(t *testing.T, nd *node, chainID ids.ID, want arc.Lifecycle) *arc.HealthReply {
 	t.Helper()
-	client := minichain.NewClient(nd.URI())
-	var last *minichain.HealthReply
+	client := arc.NewClient(nd.URI())
+	var last *arc.HealthReply
 	eventually(t, activeWait, 2*time.Second, func() (bool, string) {
 		reply, err := client.Health(ctxWithTimeout(t, 10*time.Second), chainID)
 		if err != nil {
@@ -121,7 +121,7 @@ func awaitLifecycle(t *testing.T, nd *node, chainID ids.ID, want minichain.Lifec
 	return last
 }
 
-func TestMiniChainsEndToEnd(t *testing.T) {
+func TestArcsEndToEnd(t *testing.T) {
 	net := newNetwork(t)
 	kc := secp256k1fx.NewKeychain(genesis.EWOQKey)
 	ewoq := genesis.EWOQKey.PublicKey().Address()
@@ -131,7 +131,7 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 	net.startAll()
 	n1 := net.node(1)
 	pClient := platformvm.NewClient(n1.URI())
-	mc := minichain.NewClient(n1.URI())
+	mc := arc.NewClient(n1.URI())
 
 	wallet, err := primary.NewWalletFromURI(ctxWithTimeout(t, time.Minute), n1.URI(), kc)
 	require.NoError(t, err)
@@ -162,27 +162,27 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 	caps, err := mc.Capabilities(ctxWithTimeout(t, 10*time.Second), "")
 	require.NoError(t, err)
 	require.True(t, caps.StakingEnabled)
-	list, err := mc.List(ctxWithTimeout(t, 10*time.Second), minichain.ListArgs{})
+	list, err := mc.List(ctxWithTimeout(t, 10*time.Second), arc.ListArgs{})
 	require.NoError(t, err)
 	require.Equal(t, 0, list.Counts.Registered)
 
 	// The API is read-only: there is no creation/administration method.
-	code, err := rawCall(n1.URI(), "/ext/bc/M/minichain", "minichain.create")
+	code, err := rawCall(n1.URI(), "/ext/bc/M/arc", "arc.create")
 	require.NoError(t, err)
 	require.NotZero(t, code)
 
 	t.Log("== phase 2: register subnets (M-chain transactions)")
-	alpha := &miniChain{name: "alpha", members: []int{1, 2, 3}, genesis: buildGenesis(t, "0x616c706861")}
-	beta := &miniChain{name: "beta", members: []int{3, 4, 5}, genesis: buildGenesis(t, "0x62657461")}
-	require.NotEqual(t, minichain.GenesisHash(alpha.genesis), minichain.GenesisHash(beta.genesis))
-	for _, c := range []*miniChain{alpha, beta} {
+	alpha := &testArc{name: "alpha", members: []int{1, 2, 3}, genesis: buildGenesis(t, "0x616c706861")}
+	beta := &testArc{name: "beta", members: []int{3, 4, 5}, genesis: buildGenesis(t, "0x62657461")}
+	require.NotEqual(t, arc.GenesisHash(alpha.genesis), arc.GenesisHash(beta.genesis))
+	for _, c := range []*testArc{alpha, beta} {
 		c.subnetID, err = pWallet.IssueCreateSubnetTx(owner, common.WithContext(ctxWithTimeout(t, txTimeout)))
 		require.NoError(t, err)
 		t.Logf("subnet %s = %s", c.name, c.subnetID)
-		status, err := mc.GetCreationStatus(ctxWithTimeout(t, 10*time.Second), minichain.CreationStatusArgs{SubnetTxID: c.subnetID.String()})
+		status, err := mc.GetCreationStatus(ctxWithTimeout(t, 10*time.Second), arc.CreationStatusArgs{SubnetTxID: c.subnetID.String()})
 		require.NoError(t, err)
 		net.dump("getCreationStatus."+c.name+".subnet-only", status)
-		require.Equal(t, minichain.StageSubnetRegistered, status.Stage)
+		require.Equal(t, arc.StageSubnetRegistered, status.Stage)
 	}
 
 	// Operators opt in: committee members track their subnet. node4 also
@@ -196,8 +196,8 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 	net.restartAll()
 	regressionChecks("after whitelisting restart")
 
-	t.Log("== phase 3: create two mini-chains with distinct committees")
-	for _, c := range []*miniChain{alpha, beta} {
+	t.Log("== phase 3: create two Arcs with distinct committees")
+	for _, c := range []*testArc{alpha, beta} {
 		committee := make([]workflow.Member, 0, len(c.members))
 		for _, idx := range c.members {
 			committee = append(committee, workflow.Member{NodeID: net.node(idx).nodeID, Weight: 20})
@@ -215,36 +215,36 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 		require.True(t, res.CreatedChain)
 		require.Len(t, res.ValidatorTxIDs, len(c.members))
 		c.chainID = res.ChainID
-		t.Logf("mini-chain %s = %s on subnet %s", c.name, c.chainID, c.subnetID)
+		t.Logf("Arc %s = %s on subnet %s", c.name, c.chainID, c.subnetID)
 	}
 	require.NotEqual(t, alpha.chainID, beta.chainID)
 
-	for _, c := range []*miniChain{alpha, beta} {
+	for _, c := range []*testArc{alpha, beta} {
 		for _, idx := range c.members {
-			awaitLifecycle(t, net.node(idx), c.chainID, minichain.Active)
+			awaitLifecycle(t, net.node(idx), c.chainID, arc.Active)
 		}
 	}
 
 	// node1 does not track beta: registered, but not observable there.
 	beta1, err := mc.Get(ctxWithTimeout(t, 10*time.Second), beta.chainID)
 	require.NoError(t, err)
-	require.Equal(t, minichain.Unknown, beta1.Observation.Lifecycle)
+	require.Equal(t, arc.Unknown, beta1.Observation.Lifecycle)
 	require.False(t, beta1.Observation.Healthy)
 	require.True(t, beta1.Observation.Registered)
 	require.Empty(t, beta1.Descriptor.RPCEndpoints)
 
-	list, err = mc.List(ctxWithTimeout(t, 10*time.Second), minichain.ListArgs{})
+	list, err = mc.List(ctxWithTimeout(t, 10*time.Second), arc.ListArgs{})
 	require.NoError(t, err)
 	net.dump("list.node1", list)
 	net.dump("get.beta.node1-untracked", beta1)
 	require.Equal(t, 2, list.Counts.Registered)
 	require.Equal(t, 1, list.Counts.Tracked)
 	require.Equal(t, 1, list.Counts.Healthy)
-	descriptorsBefore := map[ids.ID]minichain.Descriptor{}
+	descriptorsBefore := map[ids.ID]arc.Descriptor{}
 	for _, v := range list.Chains {
 		descriptorsBefore[v.Descriptor.ID] = v.Descriptor
-		require.Equal(t, minichain.PermissionedCommittee, v.Descriptor.ValidatorPolicy.Profile)
-		require.Equal(t, minichain.EnforcedByConsensus, v.Descriptor.ValidatorPolicy.Enforcement)
+		require.Equal(t, arc.PermissionedCommittee, v.Descriptor.ValidatorPolicy.Profile)
+		require.Equal(t, arc.EnforcedByConsensus, v.Descriptor.ValidatorPolicy.Enforcement)
 		require.Equal(t, 3, v.Descriptor.Validators.CurrentCount)
 	}
 
@@ -287,7 +287,7 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 		b := balance(t, net.node(4).URI(), beta.chainID, betaAsset, recvB)
 		return a == 1000 && b == 2000, fmt.Sprintf("alpha=%d beta=%d", a, b)
 	})
-	require.Zero(t, balance(t, net.node(1).URI(), alpha.chainID, alphaAsset, recvB), "no state leaks between mini-chains")
+	require.Zero(t, balance(t, net.node(1).URI(), alpha.chainID, alphaAsset, recvB), "no state leaks between Arcs")
 	require.Zero(t, balance(t, net.node(5).URI(), beta.chainID, betaAsset, recvA))
 
 	stats, err := mc.Stats(ctxWithTimeout(t, 10*time.Second), alpha.chainID)
@@ -343,9 +343,9 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 	net.stop(net.node(2))
 	// alpha has 2/3 of its committee weight online (node1, node3). node4
 	// tracks alpha but is not a member, so it cannot make up for node2.
-	h := awaitLifecycle(t, net.node(1), alpha.chainID, minichain.Degraded)
+	h := awaitLifecycle(t, net.node(1), alpha.chainID, arc.Degraded)
 	net.dump("health.alpha.node1-degraded", h)
-	require.Contains(t, h.Observation.Reasons, minichain.ReasonConnectedWeightTooLow)
+	require.Contains(t, h.Observation.Reasons, arc.ReasonConnectedWeightTooLow)
 
 	alphaWallet, _ = chainWallet(t, net.node(1).URI(), alpha.chainID, kc)
 	stalledTx, err := send(alphaWallet, alphaAsset, recvA, 1, common.WithContext(ctxWithTimeout(t, stallWindow)))
@@ -357,7 +357,7 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 	t.Logf("alpha tx %s stalled with status %s while node2 is down", stalledTx, status)
 
 	// beta (nodes 3,4,5) and the primary network keep working.
-	awaitLifecycle(t, net.node(5), beta.chainID, minichain.Active)
+	awaitLifecycle(t, net.node(5), beta.chainID, arc.Active)
 	betaWallet, _ = chainWallet(t, net.node(5).URI(), beta.chainID, kc)
 	_, err = send(betaWallet, betaAsset, recvB, 1, common.WithContext(ctxWithTimeout(t, txTimeout)))
 	require.NoError(t, err, "beta is isolated from alpha's outage")
@@ -369,7 +369,7 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 		st, err := avm.NewClient(net.node(1).URI(), alpha.chainID.String()).GetTxStatus(ctxWithTimeout(t, 10*time.Second), stalledTx)
 		return err == nil && st == choices.Accepted, fmt.Sprintf("status=%s err=%v", st, err)
 	})
-	awaitLifecycle(t, net.node(1), alpha.chainID, minichain.Active)
+	awaitLifecycle(t, net.node(1), alpha.chainID, arc.Active)
 	t.Logf("alpha recovered and accepted %s after node2 rejoined", stalledTx)
 
 	t.Log("== phase 7: failed initialisation is isolated")
@@ -377,55 +377,55 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 		common.WithContext(ctxWithTimeout(t, txTimeout)))
 	require.NoError(t, err, "the M-chain does not validate VM genesis; the workflow does")
 	require.Error(t, workflow.ValidateAVMGenesis([]byte("not an avm genesis")))
-	gammaHealth := awaitLifecycle(t, net.node(5), gammaID, minichain.Failed)
+	gammaHealth := awaitLifecycle(t, net.node(5), gammaID, arc.Failed)
 	net.dump("health.gamma.node5-failed", gammaHealth)
-	require.Equal(t, []string{minichain.ReasonInitialisationFailed}, gammaHealth.Observation.Reasons)
-	awaitLifecycle(t, net.node(5), beta.chainID, minichain.Active)
+	require.Equal(t, []string{arc.ReasonInitialisationFailed}, gammaHealth.Observation.Reasons)
+	awaitLifecycle(t, net.node(5), beta.chainID, arc.Active)
 	regressionChecks("after gamma failure")
 
 	// Events are recorded by the observer's poll loop, so node3 may observe
 	// gamma failing up to one poll interval after node5's API reports it.
 	var (
-		events *minichain.EventsReply
-		seen   map[minichain.EventType]int
+		events *arc.EventsReply
+		seen   map[arc.EventType]int
 	)
 	eventually(t, time.Minute, time.Second, func() (bool, string) {
-		events, err = minichain.NewClient(net.node(3).URI()).Events(ctxWithTimeout(t, 10*time.Second), 0, 500)
+		events, err = arc.NewClient(net.node(3).URI()).Events(ctxWithTimeout(t, 10*time.Second), 0, 500)
 		if err != nil {
 			return false, err.Error()
 		}
-		seen = map[minichain.EventType]int{}
+		seen = map[arc.EventType]int{}
 		for _, e := range events.Events {
 			seen[e.Type]++
 		}
-		return seen[minichain.EventFailed] > 0, fmt.Sprintf("node3 events by type: %v", seen)
+		return seen[arc.EventFailed] > 0, fmt.Sprintf("node3 events by type: %v", seen)
 	})
 	net.dump("events.node3", events)
 	for _, e := range events.Events {
 		require.False(t, e.Authoritative)
 	}
-	require.Positive(t, seen[minichain.EventRegisteredObserved])
+	require.Positive(t, seen[arc.EventRegisteredObserved])
 	bootBefore := events.BootID
 
 	t.Log("== phase 8: full restart and recovery")
 	// Snapshot the descriptors right before the restart: registering gamma
 	// on beta's subnet changed beta's subnetChainCount since phase 3.
-	list, err = mc.List(ctxWithTimeout(t, 10*time.Second), minichain.ListArgs{})
+	list, err = mc.List(ctxWithTimeout(t, 10*time.Second), arc.ListArgs{})
 	require.NoError(t, err)
 	for _, v := range list.Chains {
 		descriptorsBefore[v.Descriptor.ID] = v.Descriptor
 	}
 	net.restartAll()
-	for _, c := range []*miniChain{alpha, beta} {
+	for _, c := range []*testArc{alpha, beta} {
 		for _, idx := range c.members {
-			awaitLifecycle(t, net.node(idx), c.chainID, minichain.Active)
+			awaitLifecycle(t, net.node(idx), c.chainID, arc.Active)
 		}
 	}
-	awaitLifecycle(t, net.node(5), gammaID, minichain.Failed)
+	awaitLifecycle(t, net.node(5), gammaID, arc.Failed)
 	require.Equal(t, uint64(1001), balance(t, net.node(3).URI(), alpha.chainID, alphaAsset, recvA))
 	require.Equal(t, uint64(2001), balance(t, net.node(3).URI(), beta.chainID, betaAsset, recvB))
 
-	list, err = mc.List(ctxWithTimeout(t, 10*time.Second), minichain.ListArgs{})
+	list, err = mc.List(ctxWithTimeout(t, 10*time.Second), arc.ListArgs{})
 	require.NoError(t, err)
 	require.Equal(t, 3, list.Counts.Registered)
 	for _, v := range list.Chains {
@@ -437,7 +437,7 @@ func TestMiniChainsEndToEnd(t *testing.T) {
 		v.Descriptor.Registration.ObservedAtMChainHeight = before.Registration.ObservedAtMChainHeight
 		require.Equal(t, before, v.Descriptor)
 	}
-	eventsAfter, err := minichain.NewClient(net.node(3).URI()).Events(ctxWithTimeout(t, 10*time.Second), 0, 10)
+	eventsAfter, err := arc.NewClient(net.node(3).URI()).Events(ctxWithTimeout(t, 10*time.Second), 0, 10)
 	require.NoError(t, err)
 	require.NotEqual(t, bootBefore, eventsAfter.BootID, "consumers can detect observer restarts")
 	regressionChecks("after full restart")

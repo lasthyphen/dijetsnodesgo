@@ -14,13 +14,13 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/lasthyphen/dijetsnodesgo/arc"
 	"github.com/lasthyphen/dijetsnodesgo/cache"
 	"github.com/lasthyphen/dijetsnodesgo/codec"
 	"github.com/lasthyphen/dijetsnodesgo/codec/linearcodec"
 	"github.com/lasthyphen/dijetsnodesgo/database"
 	"github.com/lasthyphen/dijetsnodesgo/database/manager"
 	"github.com/lasthyphen/dijetsnodesgo/ids"
-	"github.com/lasthyphen/dijetsnodesgo/minichain"
 	"github.com/lasthyphen/dijetsnodesgo/snow"
 	"github.com/lasthyphen/dijetsnodesgo/snow/consensus/snowman"
 	"github.com/lasthyphen/dijetsnodesgo/snow/engine/common"
@@ -436,17 +436,17 @@ func (vm *VM) CreateHandlers(context.Context) (map[string]*common.HTTPHandler, e
 			Handler: server,
 		},
 	}
-	if vm.MiniChainObserver != nil {
-		service := minichain.NewService(vm.ctx.Log, newMiniChainRegistry(vm), vm.MiniChainObserver)
-		miniChainHandler, err := minichain.NewHandler(service)
+	if vm.ArcObserver != nil {
+		service := arc.NewService(vm.ctx.Log, newArcRegistry(vm), vm.ArcObserver)
+		arcHandler, err := arc.NewHandler(service)
 		if err != nil {
 			return nil, err
 		}
-		// The minichain service acquires the M-chain lock itself, only for
+		// The arc service acquires the M-chain lock itself, only for
 		// as long as it reads M-chain state.
-		handlers[minichain.Endpoint] = &common.HTTPHandler{
+		handlers[arc.Endpoint] = &common.HTTPHandler{
 			LockOptions: common.NoLock,
-			Handler:     miniChainHandler,
+			Handler:     arcHandler,
 		}
 	}
 	return handlers, nil

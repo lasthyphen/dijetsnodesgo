@@ -1,4 +1,4 @@
-package minichain
+package arc
 
 import (
 	stdjson "encoding/json"
@@ -89,7 +89,7 @@ func TestDescriptorJSONRoundTrip(t *testing.T) {
 	b, err := stdjson.Marshal(d)
 	require.NoError(err)
 	for _, field := range []string{
-		`"schemaVersion":1`, `"protocolVersion":"minichain/1"`, `"metadataVersion":1`,
+		`"schemaVersion":1`, `"protocolVersion":"arc/1"`, `"metadataVersion":1`,
 		`"createdAt":null`, `"explorerURL":null`, `"privacyMode":"public"`,
 	} {
 		require.Contains(string(b), field)

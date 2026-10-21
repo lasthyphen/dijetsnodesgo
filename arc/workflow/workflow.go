@@ -1,4 +1,4 @@
-// Package workflow implements the client-side mini-chain creation workflow.
+// Package workflow implements the client-side Arc creation workflow.
 //
 // Every state change is an ordinary, signed M-chain transaction issued by the
 // caller's wallet and decided by M-chain consensus:
@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lasthyphen/dijetsnodesgo/arc"
 	"github.com/lasthyphen/dijetsnodesgo/ids"
-	"github.com/lasthyphen/dijetsnodesgo/minichain"
 	"github.com/lasthyphen/dijetsnodesgo/utils/constants"
 	"github.com/lasthyphen/dijetsnodesgo/utils/formatting"
 	"github.com/lasthyphen/dijetsnodesgo/utils/json"
@@ -57,7 +57,7 @@ type Member struct {
 	Weight uint64
 }
 
-// Request describes a mini-chain to create.
+// Request describes an Arc to create.
 type Request struct {
 	Name    string
 	Genesis []byte
@@ -83,7 +83,7 @@ type Result struct {
 	CreatedChain   bool
 }
 
-// FxIDs are the feature extensions every mini-chain AVM runs with.
+// FxIDs are the feature extensions every Arc AVM runs with.
 var FxIDs = []ids.ID{secp256k1fx.ID}
 
 func newAVMParser() (avmtxs.Parser, error) {
@@ -114,7 +114,7 @@ func BuildAVMGenesis(networkID uint32, assets map[string]avm.AssetDefinition) ([
 // initialisation, so that a malformed genesis is rejected before it is
 // irrevocably registered on the M-chain.
 func ValidateAVMGenesis(genesis []byte) error {
-	if err := minichain.ValidateGenesisEnvelope(constants.AVMID, genesis); err != nil {
+	if err := arc.ValidateGenesisEnvelope(constants.AVMID, genesis); err != nil {
 		return err
 	}
 	parser, err := newAVMParser()
@@ -142,7 +142,7 @@ func ValidateAVMGenesis(genesis []byte) error {
 
 // ValidateRequest performs every check that does not need the network.
 func ValidateRequest(req Request) error {
-	if err := minichain.ValidateName(req.Name); err != nil {
+	if err := arc.ValidateName(req.Name); err != nil {
 		return err
 	}
 	if err := ValidateAVMGenesis(req.Genesis); err != nil {
@@ -161,7 +161,7 @@ func ValidateRequest(req Request) error {
 	}
 	minSize := req.MinCommitteeSize
 	if minSize == 0 {
-		minSize = minichain.DefaultMinCommitteeSize
+		minSize = arc.DefaultMinCommitteeSize
 	}
 	if len(req.Committee) < minSize {
 		return fmt.Errorf("%w: %d < %d", ErrCommitteeTooSmall, len(req.Committee), minSize)
@@ -185,7 +185,7 @@ func Create(
 	ctx context.Context,
 	w p.Wallet,
 	pClient platformvm.Client,
-	mcClient *minichain.Client,
+	mcClient *arc.Client,
 	req Request,
 	options ...common.Option,
 ) (Result, error) {
@@ -284,7 +284,7 @@ func checkEligibility(ctx context.Context, pClient platformvm.Client, req Reques
 func findExisting(
 	ctx context.Context,
 	pClient platformvm.Client,
-	mcClient *minichain.Client,
+	mcClient *arc.Client,
 	subnetID ids.ID,
 	req Request,
 ) (ids.ID, error) {
@@ -292,14 +292,14 @@ func findExisting(
 	if err != nil {
 		return ids.Empty, fmt.Errorf("couldn't fetch blockchains: %w", err)
 	}
-	want := minichain.FormatGenesisHash(minichain.GenesisHash(req.Genesis))
+	want := arc.FormatGenesisHash(arc.GenesisHash(req.Genesis))
 	for _, c := range chains {
 		if c.SubnetID != subnetID || c.Name != req.Name {
 			continue
 		}
 		reply, err := mcClient.Get(ctx, c.ID)
 		if err != nil {
-			return ids.Empty, fmt.Errorf("couldn't fetch mini-chain %s: %w", c.ID, err)
+			return ids.Empty, fmt.Errorf("couldn't fetch Arc %s: %w", c.ID, err)
 		}
 		if reply.Descriptor.GenesisHash != want || c.VMID != constants.AVMID {
 			return ids.Empty, fmt.Errorf("%w: %s", ErrConflictingRegistered, c.ID)

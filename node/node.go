@@ -31,6 +31,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/api/keystore"
 	"github.com/lasthyphen/dijetsnodesgo/api/metrics"
 	"github.com/lasthyphen/dijetsnodesgo/api/server"
+	"github.com/lasthyphen/dijetsnodesgo/arc"
 	"github.com/lasthyphen/dijetsnodesgo/chains"
 	"github.com/lasthyphen/dijetsnodesgo/chains/atomic"
 	"github.com/lasthyphen/dijetsnodesgo/database"
@@ -43,7 +44,6 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/indexer"
 	"github.com/lasthyphen/dijetsnodesgo/ipcs"
 	"github.com/lasthyphen/dijetsnodesgo/message"
-	"github.com/lasthyphen/dijetsnodesgo/minichain"
 	"github.com/lasthyphen/dijetsnodesgo/network"
 	"github.com/lasthyphen/dijetsnodesgo/network/dialer"
 	"github.com/lasthyphen/dijetsnodesgo/network/peer"
@@ -126,8 +126,8 @@ type Node struct {
 	// Manages creation of blockchains and routing messages to them
 	chainManager chains.Manager
 
-	// Observes mini-chains run by this node
-	miniChainObserver *minichain.Observer
+	// Observes Arcs run by this node
+	arcObserver *arc.Observer
 
 	// Manages validator benching
 	benchlistManager benchlist.Manager
@@ -725,9 +725,9 @@ func (n *Node) initChainManager(djtxAssetID ids.ID) error {
 	// Notify the API server when new chains are created
 	n.chainManager.AddRegistrant(n.APIServer)
 
-	// Observe mini-chains run by this node. Must be created before the
-	// platformvm, which serves the minichain.* API from these observations.
-	n.miniChainObserver, err = minichain.NewObserver(minichain.ObserverConfig{
+	// Observe Arcs run by this node. Must be created before the
+	// platformvm, which serves the arc.* API from these observations.
+	n.arcObserver, err = arc.NewObserver(arc.ObserverConfig{
 		Log:                    n.Log,
 		NodeID:                 n.ID,
 		DecisionAcceptorGroup:  n.DecisionAcceptorGroup,
@@ -735,11 +735,11 @@ func (n *Node) initChainManager(djtxAssetID ids.ID) error {
 		Registerer:             n.MetricsRegisterer,
 	})
 	if err != nil {
-		return fmt.Errorf("couldn't initialize mini-chain observer: %w", err)
+		return fmt.Errorf("couldn't initialize Arc observer: %w", err)
 	}
-	n.miniChainObserver.SetLocalStatusSource(n.chainManager.LocalStatus)
-	n.chainManager.AddRegistrant(n.miniChainObserver)
-	n.miniChainObserver.Start()
+	n.arcObserver.SetLocalStatusSource(n.chainManager.LocalStatus)
+	n.chainManager.AddRegistrant(n.arcObserver)
+	n.arcObserver.Start()
 	return nil
 }
 
@@ -796,7 +796,7 @@ func (n *Node) initVMs() error {
 				BanffTime:                       version.GetBanffTime(n.Config.NetworkID),
 				MinPercentConnectedStakeHealthy: n.Config.MinPercentConnectedStakeHealthy,
 				UseCurrentHeight:                n.Config.UseCurrentHeight,
-				MiniChainObserver:               n.miniChainObserver,
+				ArcObserver:               n.arcObserver,
 			},
 		}),
 		vmRegisterer.Register(context.TODO(), constants.AVMID, &avm.Factory{
@@ -1357,8 +1357,8 @@ func (n *Node) shutdown() {
 		zap.Int("exitCode", n.ExitCode()),
 	)
 
-	if n.miniChainObserver != nil {
-		n.miniChainObserver.MarkShuttingDown()
+	if n.arcObserver != nil {
+		n.arcObserver.MarkShuttingDown()
 	}
 
 	if n.health != nil {

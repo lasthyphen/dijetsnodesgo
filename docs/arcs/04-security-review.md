@@ -1,6 +1,6 @@
-# Mini-Chains — Security Review (prototype, schema v1)
+# Arcs — Security Review (prototype, schema v1)
 
-Scope: everything added on branch `feature/minichains`: the `minichain`
+Scope: everything added on branch `feature/arcs`: the `arc`
 package, the M-chain registry adapter, the additive chain-manager status
 accessor, the observer wiring in `node/node.go`, and the client-side workflow.
 The review assumes the unmodified AvalancheGo v1.9.4-derived consensus,
@@ -12,8 +12,8 @@ networking and M-chain transaction rules of this fork.
 | --- | --- |
 | Registry authority | Sound: registration, ownership and membership are M-chain transactions verified by M-chain consensus. No API writes state. |
 | Chain ID / genesis integrity | Sound: chain ID = hash of the signed `CreateChainTx`; genesis is immutable M-chain state; descriptor exposes its SHA-256. |
-| Consensus security | **Committee-bounded**. A mini-chain is exactly as secure as its committee. |
-| Primary-network security | **Not provided** for mini-chain state. Only registration and membership have primary-network finality. |
+| Consensus security | **Committee-bounded**. An Arc is exactly as secure as its committee. |
+| Primary-network security | **Not provided** for Arc state. Only registration and membership have primary-network finality. |
 | API exposure | Read-only, public data only, bounded resources. |
 | Database isolation | Per-chain prefix DB; no atomic shared memory across subnets. |
 | Health reporting | Conservative: never healthy without fresh positive observations. |
@@ -27,8 +27,8 @@ networking and M-chain transaction rules of this fork.
   including subnet-owner signature checks
   (`vms/platformvm/txs/executor/subnet_tx_verification.go`). Nothing in that
   path was modified.
-- The `minichain.*` service has no mutating method. A request to
-  `minichain.create` returns a JSON-RPC "method not found" error (e2e phase 1).
+- The `arc.*` service has no mutating method. A request to
+  `arc.create` returns a JSON-RPC "method not found" error (e2e phase 1).
 - A funded payer that signs the subnet authorisation with a wrong key is
   rejected by the M-chain (e2e phase 5, forged `CreateChainTx`).
 - **Not protected**: compromise of the owner's key(s) gives full control of
@@ -51,7 +51,7 @@ networking and M-chain transaction rules of this fork.
 
 ### 2.3 Validator membership and consensus assumptions
 
-- With staking enabled, the chain manager builds each mini-chain with
+- With staking enabled, the chain manager builds each Arc with
   `Validators.Get(subnetID)` as sampling set and bootstrap beacons. Only
   committee members' votes are sampled; a node that tracks the subnet without
   being a member does not restore liveness (e2e phase 6).
@@ -65,15 +65,15 @@ networking and M-chain transaction rules of this fork.
   The committee is not enforced; the API reports
   `enforcement: not_enforced_staking_disabled` and never `ACTIVE`.
 - Membership changes take effect at the `StartTime`/`EndTime` of the
-  M-chain staker transactions (M-chain timestamp), not at a mini-chain
-  height. There is no mini-chain-level epoch.
+  M-chain staker transactions (M-chain timestamp), not at an Arc
+  height. There is no Arc-level epoch.
 
 ### 2.4 Committee capture and collusion
 
 - A colluding committee holding enough weight can finalise any state,
   including conflicting histories, censor transactions, or halt the chain.
   The primary network does not detect or punish this: subnet validators are
-  not slashed and the M-chain does not verify mini-chain state.
+  not slashed and the M-chain does not verify Arc state.
 - Small committees (3 members) are easily captured. Recommendation for
   production: ≥ 5 independent operators, with no operator controlling ≥ 20 %
   of committee weight.
@@ -87,13 +87,13 @@ networking and M-chain transaction rules of this fork.
   sides (no safety violation under the threshold assumptions).
 - After recovery, the stalled transactions are finalised (e2e phase 6).
 - Committee members that do not whitelist the subnet count as offline.
-- Primary-network chains are unaffected by mini-chain outages (e2e
+- Primary-network chains are unaffected by Arc outages (e2e
   regression checks during the outage and after the failed chain).
 
 ### 2.6 Administrative RPC exposure
 
 - No admin methods were added. Existing `admin.*` is unchanged.
-- `minichain.*` errors return reason codes only; internal errors and chain
+- `arc.*` errors return reason codes only; internal errors and chain
   build errors are logged, not returned.
 - Recommendation: as for all node APIs, do not expose port 9650 publicly
   without a reverse proxy enforcing rate limits.
@@ -108,7 +108,7 @@ networking and M-chain transaction rules of this fork.
 - Metrics have bounded label cardinality (no chain IDs or names as labels).
 - **Not protected**: a node operator who whitelists many subnets runs every
   chain on them; the chain manager has no per-chain CPU/memory/disk quotas.
-  Mini-chain DBs share the node database; disk exhaustion by one chain
+  Arc DBs share the node database; disk exhaustion by one chain
   affects the node.
 
 ### 2.8 Private metadata exposure
@@ -116,20 +116,20 @@ networking and M-chain transaction rules of this fork.
 - The descriptor contains only public M-chain data. Genesis bytes are not
   returned (hash and size only). `privacyMode` is the declared value
   `public`; there is no confidential mode.
-- AVM mini-chain state (UTXOs, transactions) is public to every node that
+- AVM Arc state (UTXOs, transactions) is public to every node that
   runs the chain. `validatorOnly` subnet config restricts gossip to
   committee members but is **not encryption**; committee members see
   everything.
 - **Not protected**: anything a user puts in genesis memos, chain names or
   transactions is public. Personal AI data must never be written in clear
-  text to a mini-chain.
+  text to an Arc.
 
 ### 2.9 Database isolation
 
 - Each chain: own `prefixdb` keyspace, own data directory. Verified that
   balances on one chain are absent on the other (e2e phase 4).
 - Cross-chain atomic operations are rejected across subnets
-  (`verify.SameSubnet`), so mini-chain assets cannot be imported into V/M/U.
+  (`verify.SameSubnet`), so Arc assets cannot be imported into V/M/U.
 - **Not protected**: a bug in the shared database layer would affect all
   chains; storage is logically, not physically, isolated.
 - Fixed during review (DD-8): a chain that failed to build kept its whole
@@ -144,8 +144,8 @@ networking and M-chain transaction rules of this fork.
 
 - No consensus, codec or transaction-format change was made, so there is no
   network upgrade and no activation height. Nodes without this branch
-  validate the same M-chain transactions and can run mini-chains; they only
-  lack the `minichain.*` API.
+  validate the same M-chain transactions and can run Arcs; they only
+  lack the `arc.*` API.
 - `protocolVersion`, `schemaVersion`, `metadataVersion` are reported; the
   descriptor is recomputed from M-chain state, so there is nothing to migrate.
 
@@ -162,20 +162,20 @@ networking and M-chain transaction rules of this fork.
 
 ### 2.12 Anchoring vs consensus security
 
-- There is **no anchoring/checkpointing** of mini-chain state to the M-chain.
+- There is **no anchoring/checkpointing** of Arc state to the M-chain.
 - Even with checkpointing, a checkpoint would only make committee-signed
   history *detectable* (and prevent silent rewrites after the checkpoint); it
-  would not make mini-chain state transitions verified by primary-network
+  would not make Arc state transitions verified by primary-network
   validators. `shared_primary_security` is therefore declared non-operational.
 
 ## 3. What the system protects against
 
 - Unauthorised registration of chains on another owner's subnet.
 - Unauthorised changes to committee membership.
-- Non-members influencing mini-chain consensus (staking enabled).
-- Mini-chain failures (bad genesis, outage, quorum loss) affecting V, M, U or
-  other mini-chains.
-- Leakage of mini-chain state into other chains via shared memory.
+- Non-members influencing Arc consensus (staking enabled).
+- Arc failures (bad genesis, outage, quorum loss) affecting V, M, U or
+  other Arcs.
+- Leakage of Arc state into other chains via shared memory.
 - The API being used to alter authoritative state.
 - Explorer/consumers mistaking registration for health.
 
@@ -183,7 +183,7 @@ networking and M-chain transaction rules of this fork.
 
 - A colluding or compromised committee (safety and liveness).
 - Compromise of the subnet owner's key.
-- Confidentiality of mini-chain data (none is provided).
+- Confidentiality of Arc data (none is provided).
 - Resource exhaustion on nodes that opt in to many chains.
 - Malformed chains registered by bypassing the client-side workflow
   (detected and isolated, not prevented).
