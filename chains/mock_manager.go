@@ -53,6 +53,10 @@ func (mm MockManager) IsBootstrapped(ids.ID) bool {
 	return false
 }
 
+func (mm MockManager) LocalStatus(ids.ID) (LocalChainStatus, bool) {
+	return LocalChainStatus{}, false
+}
+
 func (mm MockManager) Lookup(s string) (ids.ID, error) {
 	id, err := ids.FromString(s)
 	if err == nil {

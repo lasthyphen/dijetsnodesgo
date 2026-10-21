@@ -20,6 +20,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/database"
 	"github.com/lasthyphen/dijetsnodesgo/database/manager"
 	"github.com/lasthyphen/dijetsnodesgo/ids"
+	"github.com/lasthyphen/dijetsnodesgo/minichain"
 	"github.com/lasthyphen/dijetsnodesgo/snow"
 	"github.com/lasthyphen/dijetsnodesgo/snow/consensus/snowman"
 	"github.com/lasthyphen/dijetsnodesgo/snow/engine/common"
@@ -430,11 +431,25 @@ func (vm *VM) CreateHandlers(context.Context) (map[string]*common.HTTPHandler, e
 		return nil, err
 	}
 
-	return map[string]*common.HTTPHandler{
+	handlers := map[string]*common.HTTPHandler{
 		"": {
 			Handler: server,
 		},
-	}, nil
+	}
+	if vm.MiniChainObserver != nil {
+		service := minichain.NewService(vm.ctx.Log, newMiniChainRegistry(vm), vm.MiniChainObserver)
+		miniChainHandler, err := minichain.NewHandler(service)
+		if err != nil {
+			return nil, err
+		}
+		// The minichain service acquires the M-chain lock itself, only for
+		// as long as it reads M-chain state.
+		handlers[minichain.Endpoint] = &common.HTTPHandler{
+			LockOptions: common.NoLock,
+			Handler:     miniChainHandler,
+		}
+	}
+	return handlers, nil
 }
 
 // CreateStaticHandlers returns a map where:

@@ -7,6 +7,7 @@ import (
 
 	"github.com/lasthyphen/dijetsnodesgo/chains"
 	"github.com/lasthyphen/dijetsnodesgo/ids"
+	"github.com/lasthyphen/dijetsnodesgo/minichain"
 	"github.com/lasthyphen/dijetsnodesgo/snow/uptime"
 	"github.com/lasthyphen/dijetsnodesgo/snow/validators"
 	"github.com/lasthyphen/dijetsnodesgo/utils/constants"
@@ -114,6 +115,10 @@ type Config struct {
 	// on recently created subnets (without this, users need to wait for
 	// [recentlyAcceptedWindowTTL] to pass for activation to occur).
 	UseCurrentHeight bool
+
+	// MiniChainObserver, if non-nil, enables the read-only minichain.* API
+	// at /ext/bc/M/minichain.
+	MiniChainObserver *minichain.Observer
 }
 
 func (c *Config) IsApricotPhase3Activated(timestamp time.Time) bool {

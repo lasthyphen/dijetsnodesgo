@@ -43,6 +43,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/indexer"
 	"github.com/lasthyphen/dijetsnodesgo/ipcs"
 	"github.com/lasthyphen/dijetsnodesgo/message"
+	"github.com/lasthyphen/dijetsnodesgo/minichain"
 	"github.com/lasthyphen/dijetsnodesgo/network"
 	"github.com/lasthyphen/dijetsnodesgo/network/dialer"
 	"github.com/lasthyphen/dijetsnodesgo/network/peer"
@@ -124,6 +125,9 @@ type Node struct {
 
 	// Manages creation of blockchains and routing messages to them
 	chainManager chains.Manager
+
+	// Observes mini-chains run by this node
+	miniChainObserver *minichain.Observer
 
 	// Manages validator benching
 	benchlistManager benchlist.Manager
@@ -720,6 +724,22 @@ func (n *Node) initChainManager(djtxAssetID ids.ID) error {
 
 	// Notify the API server when new chains are created
 	n.chainManager.AddRegistrant(n.APIServer)
+
+	// Observe mini-chains run by this node. Must be created before the
+	// platformvm, which serves the minichain.* API from these observations.
+	n.miniChainObserver, err = minichain.NewObserver(minichain.ObserverConfig{
+		Log:                    n.Log,
+		NodeID:                 n.ID,
+		DecisionAcceptorGroup:  n.DecisionAcceptorGroup,
+		ConsensusAcceptorGroup: n.ConsensusAcceptorGroup,
+		Registerer:             n.MetricsRegisterer,
+	})
+	if err != nil {
+		return fmt.Errorf("couldn't initialize mini-chain observer: %w", err)
+	}
+	n.miniChainObserver.SetLocalStatusSource(n.chainManager.LocalStatus)
+	n.chainManager.AddRegistrant(n.miniChainObserver)
+	n.miniChainObserver.Start()
 	return nil
 }
 
@@ -776,6 +796,7 @@ func (n *Node) initVMs() error {
 				BanffTime:                       version.GetBanffTime(n.Config.NetworkID),
 				MinPercentConnectedStakeHealthy: n.Config.MinPercentConnectedStakeHealthy,
 				UseCurrentHeight:                n.Config.UseCurrentHeight,
+				MiniChainObserver:               n.miniChainObserver,
 			},
 		}),
 		vmRegisterer.Register(context.TODO(), constants.AVMID, &avm.Factory{
@@ -1335,6 +1356,10 @@ func (n *Node) shutdown() {
 	n.Log.Info("shutting down Dijets node",
 		zap.Int("exitCode", n.ExitCode()),
 	)
+
+	if n.miniChainObserver != nil {
+		n.miniChainObserver.MarkShuttingDown()
+	}
 
 	if n.health != nil {
 		// Passes if the node is not shutting down

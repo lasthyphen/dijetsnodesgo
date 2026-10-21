@@ -119,7 +119,28 @@ type Manager interface {
 	// be called once.
 	StartChainCreator(platformChain ChainParameters)
 
+	// LocalStatus returns this node's local, non-authoritative view of the
+	// lifecycle of [chainID]. Returns false if this node was never asked to
+	// create the chain.
+	LocalStatus(chainID ids.ID) (LocalChainStatus, bool)
+
 	Shutdown()
+}
+
+// LocalChainStatus is a point-in-time snapshot of a chain's lifecycle as
+// observed by this node. It is never persisted and is not consensus state.
+type LocalChainStatus struct {
+	ChainID  ids.ID
+	SubnetID ids.ID
+	VMID     ids.ID
+	// Created is true once the chain's VM and engine were built successfully.
+	Created bool
+	// State is the chain's engine state. Only meaningful if Created is true.
+	State snow.State
+	// Stopped is true if the chain's message handler has shut down.
+	Stopped bool
+	// CreationErr is non-nil if building the chain failed.
+	CreationErr error
 }
 
 // ChainParameters defines the chain being created
@@ -239,6 +260,12 @@ type manager struct {
 	// Key: Chain's ID
 	// Value: The chain
 	chains map[ids.ID]handler.Handler
+	// Key: Chain's ID
+	// Value: The parameters the chain was staged for creation with
+	staged map[ids.ID]ChainParameters
+	// Key: Chain's ID
+	// Value: The error that caused the chain's creation to fail
+	failed map[ids.ID]error
 
 	// snowman++ related interface to allow validators retrieval
 	validatorState validators.State
@@ -251,6 +278,8 @@ func New(config *ManagerConfig) Manager {
 		ManagerConfig:          *config,
 		subnets:                make(map[ids.ID]Subnet),
 		chains:                 make(map[ids.ID]handler.Handler),
+		staged:                 make(map[ids.ID]ChainParameters),
+		failed:                 make(map[ids.ID]error),
 		chainsQueue:            buffer.NewUnboundedBlockingDeque[ChainParameters](initialQueueSize),
 		unblockChainCreatorCh:  make(chan struct{}),
 		chainCreatorShutdownCh: make(chan struct{}),
@@ -284,6 +313,7 @@ func (m *manager) QueueChainCreation(chainParams ChainParameters) {
 		return
 	}
 
+	m.markStaged(chainParams)
 	if ok := m.chainsQueue.PushRight(chainParams); !ok {
 		m.Log.Warn("skipping dijets chain creation",
 			zap.String("reason", "couldn't enqueue chain"),
@@ -315,6 +345,10 @@ func (m *manager) createChain(chainParams ChainParameters) {
 	// upon start is dropped.
 	chain, err := m.buildChain(chainParams, sb)
 	if err != nil {
+		m.chainsLock.Lock()
+		m.failed[chainParams.ID] = err
+		m.chainsLock.Unlock()
+
 		if m.CriticalChains.Contains(chainParams.ID) {
 			// Shut down if we fail to create a required chain (i.e. X, P or C)
 			m.Log.Fatal("error creating required dijets chain",
@@ -335,6 +369,11 @@ func (m *manager) createChain(chainParams ChainParameters) {
 			zap.Stringer("vmID", chainParams.VMID),
 			zap.Error(err),
 		)
+
+		// A chain that failed to build is never retried, so it can never
+		// finish bootstrapping. Release it from its subnet's bootstrapping
+		// set; otherwise every other chain of the subnet waits for it forever.
+		sb.Bootstrapped(chainParams.ID)
 
 		// Register the health check for this chain regardless of if it was
 		// created or not. This attempts to notify the node operator that their
@@ -1106,6 +1145,41 @@ func (m *manager) IsBootstrapped(id ids.ID) bool {
 	return chain.Context().GetState() == snow.NormalOp
 }
 
+func (m *manager) markStaged(chainParams ChainParameters) {
+	m.chainsLock.Lock()
+	defer m.chainsLock.Unlock()
+
+	m.staged[chainParams.ID] = chainParams
+}
+
+func (m *manager) LocalStatus(chainID ids.ID) (LocalChainStatus, bool) {
+	m.chainsLock.Lock()
+	params, staged := m.staged[chainID]
+	chain, created := m.chains[chainID]
+	creationErr := m.failed[chainID]
+	m.chainsLock.Unlock()
+
+	if !staged {
+		return LocalChainStatus{}, false
+	}
+	status := LocalChainStatus{
+		ChainID:     chainID,
+		SubnetID:    params.SubnetID,
+		VMID:        params.VMID,
+		Created:     created,
+		CreationErr: creationErr,
+	}
+	if created {
+		status.State = chain.Context().GetState()
+		select {
+		case <-chain.Stopped():
+			status.Stopped = true
+		default:
+		}
+	}
+	return status, true
+}
+
 func (m *manager) subnetsNotBootstrapped() []ids.ID {
 	m.subnetsLock.Lock()
 	defer m.subnetsLock.Unlock()
@@ -1143,6 +1217,7 @@ func (m *manager) StartChainCreator(platform ChainParameters) {
 	m.subnets[platform.SubnetID] = sb
 	sb.addChain(platform.ID)
 	m.subnetsLock.Unlock()
+	m.markStaged(platform)
 
 	// The P-chain is created synchronously to ensure that `VM.Initialize` has
 	// finished before returning from this function. This is required because
