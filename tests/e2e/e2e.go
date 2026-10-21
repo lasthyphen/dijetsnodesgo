@@ -1,5 +1,4 @@
-// Copyright (C) 2019-2022, Ava Labs, Inc. All rights reserved.
-// See the file LICENSE for licensing terms.
+
 
 // e2e implements the e2e tests.
 package e2e
