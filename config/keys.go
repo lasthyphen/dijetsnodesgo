@@ -150,6 +150,7 @@ const (
 	FdLimitKey                                         = "fd-limit"
 	IndexEnabledKey                                    = "index-enabled"
 	IndexAllowIncompleteKey                            = "index-allow-incomplete"
+	IndexSubnetChainsKey                               = "index-subnet-chains"
 	RouterHealthMaxDropRateKey                         = "router-health-max-drop-rate"
 	RouterHealthMaxOutstandingRequestsKey              = "router-health-max-outstanding-requests"
 	HealthCheckFreqKey                                 = "health-check-frequency"

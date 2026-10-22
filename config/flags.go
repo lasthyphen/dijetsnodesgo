@@ -323,6 +323,7 @@ func addNodeFlags(fs *flag.FlagSet) {
 	// Indexer
 	fs.Bool(IndexEnabledKey, false, "If true, index all accepted containers and transactions and expose them via an API")
 	fs.Bool(IndexAllowIncompleteKey, false, "If true, allow running the node in such a way that could cause an index to miss transactions. Ignored if index is disabled")
+	fs.Bool(IndexSubnetChainsKey, false, "If true, also index the chains of tracked subnets (Arcs). Ignored if index is disabled")
 
 	// Config Directories
 	fs.String(ChainConfigDirKey, defaultChainConfigDir, fmt.Sprintf("Chain specific configurations parent directory. Ignored if %s is specified", ChainConfigContentKey))

@@ -538,3 +538,36 @@ func TestIgnoreNonDefaultChains(t *testing.T) {
 	idxr.RegisterChain("chain1", chainEngine)
 	require.Len(idxr.blockIndices, 0)
 }
+
+// With IndexSubnetChains, chains of tracked subnets (Arcs) are indexed.
+func TestIndexSubnetChains(t *testing.T) {
+	require := require.New(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	config := Config{
+		IndexingEnabled:        true,
+		IndexSubnetChains:      true,
+		Log:                    logging.NoLog{},
+		DB:                     versiondb.New(memdb.New()),
+		DecisionAcceptorGroup:  snow.NewAcceptorGroup(logging.NoLog{}),
+		ConsensusAcceptorGroup: snow.NewAcceptorGroup(logging.NoLog{}),
+		APIServer:              &apiServerMock{},
+		ShutdownF:              func() {},
+	}
+	idxrIntf, err := NewIndexer(config)
+	require.NoError(err)
+	idxr, ok := idxrIntf.(*indexer)
+	require.True(ok)
+
+	chainCtx := snow.DefaultConsensusContextTest()
+	chainCtx.ChainID = ids.GenerateTestID()
+	chainCtx.SubnetID = ids.GenerateTestID()
+	chainVM := smblockmocks.NewMockChainVM(ctrl)
+	chainEngine := snowman.NewMockEngine(ctrl)
+	chainEngine.EXPECT().Context().AnyTimes().Return(chainCtx)
+	chainEngine.EXPECT().GetVM().AnyTimes().Return(chainVM)
+	idxr.RegisterChain("chain1", chainEngine)
+	require.Len(idxr.blockIndices, 1)
+	require.NoError(idxr.close())
+}

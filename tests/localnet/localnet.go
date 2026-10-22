@@ -86,7 +86,12 @@ type Network struct {
 	Nodes       []*Node
 }
 
+// repoRoot is the node repository: $E2E_REPO_ROOT, or two levels above the
+// test's working directory (tests/<suite>).
 func repoRoot(t *testing.T) string {
+	if root := os.Getenv("E2E_REPO_ROOT"); root != "" {
+		return root
+	}
 	wd, err := os.Getwd()
 	require.NoError(t, err)
 	return filepath.Clean(filepath.Join(wd, "..", ".."))

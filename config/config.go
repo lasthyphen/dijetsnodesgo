@@ -249,6 +249,7 @@ func getHTTPConfig(v *viper.Viper) (node.HTTPConfig, error) {
 			APIIndexerConfig: node.APIIndexerConfig{
 				IndexAPIEnabled:      v.GetBool(IndexEnabledKey),
 				IndexAllowIncomplete: v.GetBool(IndexAllowIncompleteKey),
+				IndexSubnetChains:    v.GetBool(IndexSubnetChainsKey),
 			},
 			AdminAPIEnabled:    v.GetBool(AdminAPIEnabledKey),
 			InfoAPIEnabled:     v.GetBool(InfoAPIEnabledKey),

@@ -522,6 +522,7 @@ func (n *Node) initIndexer() error {
 	n.indexer, err = indexer.NewIndexer(indexer.Config{
 		IndexingEnabled:        n.Config.IndexAPIEnabled,
 		AllowIncompleteIndex:   n.Config.IndexAllowIncomplete,
+		IndexSubnetChains:      n.Config.IndexSubnetChains,
 		DB:                     txIndexerDB,
 		Log:                    n.Log,
 		DecisionAcceptorGroup:  n.DecisionAcceptorGroup,

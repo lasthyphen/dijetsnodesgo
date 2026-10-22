@@ -60,6 +60,11 @@ type Config struct {
 	Log                    logging.Logger
 	IndexingEnabled        bool
 	AllowIncompleteIndex   bool
+	// IndexSubnetChains also indexes chains outside the primary network
+	// (Arcs) that this node runs. A subnet chain is first registered when
+	// the node starts tracking its subnet and bootstraps it from genesis,
+	// so its index is complete from the start.
+	IndexSubnetChains      bool
 	DecisionAcceptorGroup  snow.AcceptorGroup
 	ConsensusAcceptorGroup snow.AcceptorGroup
 	APIServer              server.PathAdder
@@ -83,6 +88,7 @@ func NewIndexer(config Config) (Indexer, error) {
 		log:                    config.Log,
 		db:                     config.DB,
 		allowIncompleteIndex:   config.AllowIncompleteIndex,
+		indexSubnetChains:      config.IndexSubnetChains,
 		indexingEnabled:        config.IndexingEnabled,
 		decisionAcceptorGroup:  config.DecisionAcceptorGroup,
 		consensusAcceptorGroup: config.ConsensusAcceptorGroup,
@@ -127,6 +133,8 @@ type indexer struct {
 	// If true, allow running in such a way that could allow the creation
 	// of an index which could be missing accepted containers.
 	allowIncompleteIndex bool
+	// If true, chains outside the primary network are indexed too
+	indexSubnetChains bool
 
 	// If false, don't create index for a chain when RegisterChain is called
 	indexingEnabled bool
@@ -156,7 +164,7 @@ func (i *indexer) RegisterChain(name string, engine common.Engine) {
 			zap.String("chainName", name),
 		)
 		return
-	} else if ctx.SubnetID != constants.PrimaryNetworkID {
+	} else if ctx.SubnetID != constants.PrimaryNetworkID && !i.indexSubnetChains {
 		i.log.Debug("not registering chain to indexer",
 			zap.String("reason", "not in the primary network"),
 			zap.String("chainName", name),

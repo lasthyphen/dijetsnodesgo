@@ -41,6 +41,8 @@ type APIAuthConfig struct {
 type APIIndexerConfig struct {
 	IndexAPIEnabled      bool `json:"indexAPIEnabled"`
 	IndexAllowIncomplete bool `json:"indexAllowIncomplete"`
+	// IndexSubnetChains also indexes chains of tracked subnets (Arcs).
+	IndexSubnetChains bool `json:"indexSubnetChains"`
 }
 
 type HTTPConfig struct {
