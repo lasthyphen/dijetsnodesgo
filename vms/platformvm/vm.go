@@ -431,9 +431,20 @@ func (vm *VM) CreateHandlers(context.Context) (map[string]*common.HTTPHandler, e
 		return nil, err
 	}
 
+	namesHandler, err := newNamesHandler(vm)
+	if err != nil {
+		return nil, err
+	}
+
 	handlers := map[string]*common.HTTPHandler{
 		"": {
 			Handler: server,
+		},
+		// The names service acquires the M-chain lock itself, only for as
+		// long as it reads accepted state.
+		NamesEndpoint: {
+			LockOptions: common.NoLock,
+			Handler:     namesHandler,
 		},
 	}
 	if vm.ArcObserver != nil {

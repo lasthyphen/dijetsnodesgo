@@ -70,6 +70,14 @@ func (*ProposalTxExecutor) CreateSubnetTx(*txs.CreateSubnetTx) error {
 	return errWrongTxType
 }
 
+func (*ProposalTxExecutor) RegisterNameTx(*txs.RegisterNameTx) error {
+	return errWrongTxType
+}
+
+func (*ProposalTxExecutor) UpdateNameTx(*txs.UpdateNameTx) error {
+	return errWrongTxType
+}
+
 func (*ProposalTxExecutor) ImportTx(*txs.ImportTx) error {
 	return errWrongTxType
 }

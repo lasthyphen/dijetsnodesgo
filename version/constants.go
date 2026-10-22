@@ -94,6 +94,14 @@ var (
 	}
 	BanffDefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 
+	// Native naming is not scheduled on public networks: indexers that decode
+	// M-chain blocks must understand the new transaction types first.
+	NamingTimes = map[uint32]time.Time{
+		constants.MainnetID: time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
+		constants.LotharID:    time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
+	}
+	NamingDefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
+
 	// FIXME: update this before release
 	XChainMigrationTimes = map[uint32]time.Time{
 		constants.MainnetID: time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
@@ -163,6 +171,13 @@ func GetBanffTime(networkID uint32) time.Time {
 		return upgradeTime
 	}
 	return BanffDefaultTime
+}
+
+func GetNamingTime(networkID uint32) time.Time {
+	if upgradeTime, exists := NamingTimes[networkID]; exists {
+		return upgradeTime
+	}
+	return NamingDefaultTime
 }
 
 func GetXChainMigrationTime(networkID uint32) time.Time {

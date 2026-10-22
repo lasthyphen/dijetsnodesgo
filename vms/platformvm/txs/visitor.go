@@ -17,4 +17,8 @@ type Visitor interface {
 	TransformSubnetTx(*TransformSubnetTx) error
 	AddPermissionlessValidatorTx(*AddPermissionlessValidatorTx) error
 	AddPermissionlessDelegatorTx(*AddPermissionlessDelegatorTx) error
+
+	// Native naming additions:
+	RegisterNameTx(*RegisterNameTx) error
+	UpdateNameTx(*UpdateNameTx) error
 }

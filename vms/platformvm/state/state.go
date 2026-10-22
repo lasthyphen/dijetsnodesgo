@@ -32,6 +32,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/config"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/genesis"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/metrics"
+	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/reward"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/status"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
@@ -107,6 +108,20 @@ type Chain interface {
 
 	GetTx(txID ids.ID) (*txs.Tx, status.Status, error)
 	AddTx(tx *txs.Tx, status status.Status)
+
+	// GetName returns the current record of [name], or database.ErrNotFound
+	// if the name has never been registered.
+	GetName(name string) (*names.Record, error)
+	// PutName stores a new version of a record. Records are immutable once
+	// stored; callers must pass a fresh record.
+	PutName(record *names.Record)
+
+	// GetNameTarget returns the name last bound to [target], or
+	// database.ErrNotFound. The binding may be stale: callers must check
+	// that the returned name's record still targets [target].
+	GetNameTarget(target ids.ShortID) (string, error)
+	PutNameTarget(target ids.ShortID, name string)
+	DeleteNameTarget(target ids.ShortID)
 }
 
 type LastAccepteder interface {
@@ -133,6 +148,10 @@ type State interface {
 	GetValidatorPublicKeyDiffs(height uint64) (map[ids.NodeID]*bls.PublicKey, error)
 
 	SetHeight(height uint64)
+
+	// GetNameHistory returns every committed version of [name], oldest
+	// first.
+	GetNameHistory(name string) ([]*names.Record, error)
 
 	// Discard uncommitted changes to the database.
 	Abort()
@@ -207,6 +226,12 @@ type stateBlk struct {
  * | '-. subnetID
  * |   '-. list
  * |     '-- txID -> nil
+ * |-. nameRecord
+ * | '-- name -> current record
+ * |-. nameHistory
+ * | '-- name + 0x00 + generation + version -> record
+ * |-. nameTarget
+ * | '-- target -> name
  * '-. singletons
  *   |-- initializedKey -> nil
  *   |-- timestampKey -> timestamp
@@ -282,6 +307,11 @@ type state struct {
 	modifiedSupplies map[ids.ID]uint64 // map of subnetID -> current supply
 	supplyCache      cache.Cacher      // cache of subnetID -> current supply if the entry is nil, it is not in the database
 	supplyDB         database.Database
+
+	nameChanges   nameChanges
+	nameRecordDB  database.Database
+	nameHistoryDB database.Database
+	nameTargetDB  database.Database
 
 	addedChains  map[ids.ID][]*txs.Tx // maps subnetID -> the newly added chains to the subnet
 	chainCache   cache.Cacher         // cache of subnetID -> the chains after all local modifications []*txs.Tx
@@ -541,6 +571,10 @@ func new(
 		modifiedSupplies: make(map[ids.ID]uint64),
 		supplyCache:      supplyCache,
 		supplyDB:         prefixdb.New(supplyPrefix, baseDB),
+
+		nameRecordDB:  prefixdb.New(nameRecordPrefix, baseDB),
+		nameHistoryDB: prefixdb.New(nameHistoryPrefix, baseDB),
+		nameTargetDB:  prefixdb.New(nameTargetPrefix, baseDB),
 
 		addedChains:  make(map[ids.ID][]*txs.Tx),
 		chainDB:      prefixdb.New(chainPrefix, baseDB),
@@ -1380,6 +1414,7 @@ func (s *state) write(updateValidators bool, height uint64) error {
 		s.writeTransformedSubnets(),
 		s.writeSubnetSupplies(),
 		s.writeChains(),
+		s.writeNames(),
 		s.writeMetadata(),
 	)
 	return errs.Err
@@ -1406,6 +1441,9 @@ func (s *state) Close() error {
 		s.transformedSubnetDB.Close(),
 		s.supplyDB.Close(),
 		s.chainDB.Close(),
+		s.nameRecordDB.Close(),
+		s.nameHistoryDB.Close(),
+		s.nameTargetDB.Close(),
 		s.singletonDB.Close(),
 		s.blockDB.Close(),
 	)

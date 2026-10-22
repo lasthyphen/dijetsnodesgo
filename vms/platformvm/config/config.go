@@ -12,6 +12,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/snow/validators"
 	"github.com/lasthyphen/dijetsnodesgo/utils/constants"
 	"github.com/lasthyphen/dijetsnodesgo/utils/set"
+	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/reward"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
 )
@@ -98,6 +99,12 @@ type Config struct {
 	// Time of the Banff network upgrade
 	BanffTime time.Time
 
+	// Time from which the native naming registry accepts transactions
+	NamingTime time.Time
+
+	// Consensus parameters of the native naming registry
+	NamingParams names.Params
+
 	// Subnet ID --> Minimum portion of the subnet's stake this node must be
 	// connected to in order to report healthy.
 	// [constants.PrimaryNetworkID] is always a key in this map.
@@ -131,6 +138,13 @@ func (c *Config) IsApricotPhase5Activated(timestamp time.Time) bool {
 
 func (c *Config) IsBanffActivated(timestamp time.Time) bool {
 	return !timestamp.Before(c.BanffTime)
+}
+
+// IsNamingActivated reports whether name transactions are valid at
+// [timestamp]. Naming builds on Banff blocks, so it is never active before
+// Banff.
+func (c *Config) IsNamingActivated(timestamp time.Time) bool {
+	return c.IsBanffActivated(timestamp) && !timestamp.Before(c.NamingTime)
 }
 
 func (c *Config) GetCreateBlockchainTxFee(timestamp time.Time) uint64 {

@@ -15,6 +15,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/utils/math"
 	"github.com/lasthyphen/dijetsnodesgo/utils/set"
 	"github.com/lasthyphen/dijetsnodesgo/vms/components/djtx"
+	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/signer"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/stakeable"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
@@ -133,6 +134,32 @@ type Builder interface {
 		owner *secp256k1fx.OutputOwners,
 		options ...common.Option,
 	) (*txs.CreateSubnetTx, error)
+
+	// NewRegisterNameTx registers [name] in the native naming registry.
+	//
+	// - [target] is the identity payments to the name are sent to. The
+	//   keychain must hold its key, because the target must consent.
+	// - [owner] specifies who may update the registration.
+	// - [expiry] is the Unix time at which the registration expires.
+	// - [registerFee] is the registry's registration fee, as reported by
+	//   names.params.
+	NewRegisterNameTx(
+		name string,
+		target ids.ShortID,
+		owner *secp256k1fx.OutputOwners,
+		expiry uint64,
+		registerFee uint64,
+		options ...common.Option,
+	) (*txs.RegisterNameTx, error)
+
+	// NewUpdateNameTx replaces the contents of the registration [current]
+	// with [update]. The keychain must satisfy the current owner and, if the
+	// target changes, hold the key of the new target.
+	NewUpdateNameTx(
+		current *names.Record,
+		update NameUpdate,
+		options ...common.Option,
+	) (*txs.UpdateNameTx, error)
 
 	// NewImportTx creates an import transaction that attempts to consume all
 	// the available UTXOs and import the funds to [to].

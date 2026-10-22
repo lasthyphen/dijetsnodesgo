@@ -40,6 +40,12 @@ func init() {
 		c.SkipRegistrations(5)
 
 		errs.Add(RegisterUnsignedTxsTypes(c))
+
+		// Skip the positions of the Banff blocks, which the blocks codec
+		// registers after the types above.
+		c.SkipRegistrations(4)
+
+		errs.Add(RegisterNamingTxsTypes(c))
 	}
 	errs.Add(
 		Codec.RegisterCodec(Version, c),
@@ -90,6 +96,19 @@ func RegisterUnsignedTxsTypes(targetCodec codec.Registry) error {
 
 		targetCodec.RegisterType(&signer.Empty{}),
 		targetCodec.RegisterType(&signer.ProofOfPossession{}),
+	)
+	return errs.Err
+}
+
+// RegisterNamingTxsTypes registers the native naming transactions. They are
+// registered after the Banff block types, rather than appended to
+// [RegisterUnsignedTxsTypes], so that the type IDs of existing blocks and
+// transactions are unchanged.
+func RegisterNamingTxsTypes(targetCodec codec.Registry) error {
+	errs := wrappers.Errs{}
+	errs.Add(
+		targetCodec.RegisterType(&RegisterNameTx{}),
+		targetCodec.RegisterType(&UpdateNameTx{}),
 	)
 	return errs.Err
 }

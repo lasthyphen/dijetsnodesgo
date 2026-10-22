@@ -12,6 +12,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	ids "github.com/lasthyphen/dijetsnodesgo/ids"
+	names "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	djtx "github.com/lasthyphen/dijetsnodesgo/vms/components/djtx"
 	status "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/status"
 	txs "github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
@@ -452,4 +453,70 @@ func (m *MockChain) SetTimestamp(arg0 time.Time) {
 func (mr *MockChainMockRecorder) SetTimestamp(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTimestamp", reflect.TypeOf((*MockChain)(nil).SetTimestamp), arg0)
+}
+
+// GetName mocks base method.
+func (m *MockChain) GetName(arg0 string) (*names.Record, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetName", arg0)
+	ret0, _ := ret[0].(*names.Record)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetName indicates an expected call of GetName.
+func (mr *MockChainMockRecorder) GetName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetName", reflect.TypeOf((*MockChain)(nil).GetName), arg0)
+}
+
+// PutName mocks base method.
+func (m *MockChain) PutName(arg0 *names.Record) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PutName", arg0)
+}
+
+// PutName indicates an expected call of PutName.
+func (mr *MockChainMockRecorder) PutName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutName", reflect.TypeOf((*MockChain)(nil).PutName), arg0)
+}
+
+// GetNameTarget mocks base method.
+func (m *MockChain) GetNameTarget(arg0 ids.ShortID) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNameTarget", arg0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNameTarget indicates an expected call of GetNameTarget.
+func (mr *MockChainMockRecorder) GetNameTarget(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNameTarget", reflect.TypeOf((*MockChain)(nil).GetNameTarget), arg0)
+}
+
+// PutNameTarget mocks base method.
+func (m *MockChain) PutNameTarget(arg0 ids.ShortID, arg1 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PutNameTarget", arg0, arg1)
+}
+
+// PutNameTarget indicates an expected call of PutNameTarget.
+func (mr *MockChainMockRecorder) PutNameTarget(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutNameTarget", reflect.TypeOf((*MockChain)(nil).PutNameTarget), arg0, arg1)
+}
+
+// DeleteNameTarget mocks base method.
+func (m *MockChain) DeleteNameTarget(arg0 ids.ShortID) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DeleteNameTarget", arg0)
+}
+
+// DeleteNameTarget indicates an expected call of DeleteNameTarget.
+func (mr *MockChainMockRecorder) DeleteNameTarget(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNameTarget", reflect.TypeOf((*MockChain)(nil).DeleteNameTarget), arg0)
 }

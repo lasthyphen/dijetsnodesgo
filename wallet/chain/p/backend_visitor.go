@@ -48,6 +48,14 @@ func (b *backendVisitor) CreateSubnetTx(tx *txs.CreateSubnetTx) error {
 	return b.baseTx(&tx.BaseTx)
 }
 
+func (b *backendVisitor) RegisterNameTx(tx *txs.RegisterNameTx) error {
+	return b.baseTx(&tx.BaseTx)
+}
+
+func (b *backendVisitor) UpdateNameTx(tx *txs.UpdateNameTx) error {
+	return b.baseTx(&tx.BaseTx)
+}
+
 func (b *backendVisitor) RemoveSubnetValidatorTx(tx *txs.RemoveSubnetValidatorTx) error {
 	return b.baseTx(&tx.BaseTx)
 }

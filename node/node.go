@@ -76,6 +76,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/vms/nftfx"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/config"
+	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/signer"
 	"github.com/lasthyphen/dijetsnodesgo/vms/propertyfx"
 	"github.com/lasthyphen/dijetsnodesgo/vms/registry"
@@ -794,6 +795,8 @@ func (n *Node) initVMs() error {
 				ApricotPhase3Time:               version.GetApricotPhase3Time(n.Config.NetworkID),
 				ApricotPhase5Time:               version.GetApricotPhase5Time(n.Config.NetworkID),
 				BanffTime:                       version.GetBanffTime(n.Config.NetworkID),
+				NamingTime:                      version.GetNamingTime(n.Config.NetworkID),
+				NamingParams:                    names.GetParams(n.Config.NetworkID),
 				MinPercentConnectedStakeHealthy: n.Config.MinPercentConnectedStakeHealthy,
 				UseCurrentHeight:                n.Config.UseCurrentHeight,
 				ArcObserver:               n.arcObserver,

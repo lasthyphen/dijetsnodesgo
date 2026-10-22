@@ -26,7 +26,9 @@ type txMetrics struct {
 	numRemoveSubnetValidatorTxs,
 	numTransformSubnetTxs,
 	numAddPermissionlessValidatorTxs,
-	numAddPermissionlessDelegatorTxs prometheus.Counter
+	numAddPermissionlessDelegatorTxs,
+	numRegisterNameTxs,
+	numUpdateNameTxs prometheus.Counter
 }
 
 func newTxMetrics(
@@ -48,6 +50,8 @@ func newTxMetrics(
 		numTransformSubnetTxs:            newTxMetric(namespace, "transform_subnet", registerer, &errs),
 		numAddPermissionlessValidatorTxs: newTxMetric(namespace, "add_permissionless_validator", registerer, &errs),
 		numAddPermissionlessDelegatorTxs: newTxMetric(namespace, "add_permissionless_delegator", registerer, &errs),
+		numRegisterNameTxs:               newTxMetric(namespace, "register_name", registerer, &errs),
+		numUpdateNameTxs:                 newTxMetric(namespace, "update_name", registerer, &errs),
 	}
 	return m, errs.Err
 }
@@ -129,5 +133,15 @@ func (m *txMetrics) AddPermissionlessValidatorTx(*txs.AddPermissionlessValidator
 
 func (m *txMetrics) AddPermissionlessDelegatorTx(*txs.AddPermissionlessDelegatorTx) error {
 	m.numAddPermissionlessDelegatorTxs.Inc()
+	return nil
+}
+
+func (m *txMetrics) RegisterNameTx(*txs.RegisterNameTx) error {
+	m.numRegisterNameTxs.Inc()
+	return nil
+}
+
+func (m *txMetrics) UpdateNameTx(*txs.UpdateNameTx) error {
+	m.numUpdateNameTxs.Inc()
 	return nil
 }

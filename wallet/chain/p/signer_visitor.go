@@ -30,6 +30,7 @@ var (
 	errUnknownOutputType     = errors.New("unknown output type")
 	errUnknownSubnetAuthType = errors.New("unknown subnet auth type")
 	errInvalidUTXOSigIndex   = errors.New("invalid UTXO signature index")
+	errNoNameOwnerBackend    = errors.New("signer backend can't look up name owners")
 
 	emptySig [crypto.SECP256K1RSigLen]byte
 )
@@ -97,6 +98,46 @@ func (s *signerVisitor) CreateSubnetTx(tx *txs.CreateSubnetTx) error {
 	if err != nil {
 		return err
 	}
+	return sign(s.tx, txSigners)
+}
+
+func (s *signerVisitor) RegisterNameTx(tx *txs.RegisterNameTx) error {
+	txSigners, err := s.getSigners(constants.PlatformChainID, tx.Ins)
+	if err != nil {
+		return err
+	}
+	targetSigners, err := s.getAuthSigners(tx.TargetAuth, nameTargetOwner(tx.Target))
+	if err != nil {
+		return err
+	}
+	txSigners = append(txSigners, targetSigners)
+	return sign(s.tx, txSigners)
+}
+
+func (s *signerVisitor) UpdateNameTx(tx *txs.UpdateNameTx) error {
+	txSigners, err := s.getSigners(constants.PlatformChainID, tx.Ins)
+	if err != nil {
+		return err
+	}
+	ownerBackend, ok := s.backend.(NameOwnerBackend)
+	if !ok {
+		return errNoNameOwnerBackend
+	}
+	owner, err := ownerBackend.GetNameOwner(s.ctx, tx.Name)
+	if err != nil {
+		return fmt.Errorf("failed to fetch the owner of name %q: %w", tx.Name, err)
+	}
+	nameSigners, err := s.getAuthSigners(tx.NameAuth, owner)
+	if err != nil {
+		return err
+	}
+	// When the target is unchanged, the target authorization has no
+	// signature indices and yields the required empty credential.
+	targetSigners, err := s.getAuthSigners(tx.TargetAuth, nameTargetOwner(tx.Target))
+	if err != nil {
+		return err
+	}
+	txSigners = append(txSigners, nameSigners, targetSigners)
 	return sign(s.tx, txSigners)
 }
 
@@ -323,4 +364,42 @@ func sign(tx *txs.Tx, txSigners [][]keychain.Signer) error {
 	}
 	tx.Initialize(unsignedBytes, signedBytes)
 	return nil
+}
+
+// NameOwnerBackend is implemented by signer backends that can look up the
+// current owner of a name, which signing an UpdateNameTx requires.
+type NameOwnerBackend interface {
+	GetNameOwner(ctx stdcontext.Context, name string) (*secp256k1fx.OutputOwners, error)
+}
+
+func nameTargetOwner(target ids.ShortID) *secp256k1fx.OutputOwners {
+	return &secp256k1fx.OutputOwners{
+		Threshold: 1,
+		Addrs:     []ids.ShortID{target},
+	}
+}
+
+// getAuthSigners returns the keys that [auth] requires from [owner]. Keys
+// the keychain doesn't hold are left nil so that the tx can be partially
+// signed.
+func (s *signerVisitor) getAuthSigners(auth verify.Verifiable, owner *secp256k1fx.OutputOwners) ([]keychain.Signer, error) {
+	input, ok := auth.(*secp256k1fx.Input)
+	if !ok {
+		return nil, errUnknownSubnetAuthType
+	}
+
+	authSigners := make([]keychain.Signer, len(input.SigIndices))
+	for sigIndex, addrIndex := range input.SigIndices {
+		if addrIndex >= uint32(len(owner.Addrs)) {
+			return nil, errInvalidUTXOSigIndex
+		}
+
+		addr := owner.Addrs[addrIndex]
+		key, ok := s.kc.Get(addr)
+		if !ok {
+			continue
+		}
+		authSigners[sigIndex] = key
+	}
+	return authSigners, nil
 }

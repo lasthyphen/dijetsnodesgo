@@ -58,6 +58,16 @@ func (i *issuer) CreateSubnetTx(*txs.CreateSubnetTx) error {
 	return nil
 }
 
+func (i *issuer) RegisterNameTx(*txs.RegisterNameTx) error {
+	i.m.addDecisionTx(i.tx)
+	return nil
+}
+
+func (i *issuer) UpdateNameTx(*txs.UpdateNameTx) error {
+	i.m.addDecisionTx(i.tx)
+	return nil
+}
+
 func (i *issuer) ImportTx(*txs.ImportTx) error {
 	i.m.addDecisionTx(i.tx)
 	return nil

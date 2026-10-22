@@ -49,6 +49,14 @@ func (v *MempoolTxVerifier) CreateSubnetTx(tx *txs.CreateSubnetTx) error {
 	return v.standardTx(tx)
 }
 
+func (v *MempoolTxVerifier) RegisterNameTx(tx *txs.RegisterNameTx) error {
+	return v.standardTx(tx)
+}
+
+func (v *MempoolTxVerifier) UpdateNameTx(tx *txs.UpdateNameTx) error {
+	return v.standardTx(tx)
+}
+
 func (v *MempoolTxVerifier) ImportTx(tx *txs.ImportTx) error {
 	return v.standardTx(tx)
 }

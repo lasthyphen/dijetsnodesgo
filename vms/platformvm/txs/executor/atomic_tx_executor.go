@@ -47,6 +47,14 @@ func (*AtomicTxExecutor) CreateSubnetTx(*txs.CreateSubnetTx) error {
 	return errWrongTxType
 }
 
+func (*AtomicTxExecutor) RegisterNameTx(*txs.RegisterNameTx) error {
+	return errWrongTxType
+}
+
+func (*AtomicTxExecutor) UpdateNameTx(*txs.UpdateNameTx) error {
+	return errWrongTxType
+}
+
 func (*AtomicTxExecutor) AdvanceTimeTx(*txs.AdvanceTimeTx) error {
 	return errWrongTxType
 }

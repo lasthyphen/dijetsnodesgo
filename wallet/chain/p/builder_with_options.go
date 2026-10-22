@@ -7,6 +7,7 @@ import (
 
 	"github.com/lasthyphen/dijetsnodesgo/ids"
 	"github.com/lasthyphen/dijetsnodesgo/vms/components/djtx"
+	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/signer"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/validator"
@@ -125,6 +126,36 @@ func (b *builderWithOptions) NewCreateSubnetTx(
 ) (*txs.CreateSubnetTx, error) {
 	return b.Builder.NewCreateSubnetTx(
 		owner,
+		common.UnionOptions(b.options, options)...,
+	)
+}
+
+func (b *builderWithOptions) NewRegisterNameTx(
+	name string,
+	target ids.ShortID,
+	owner *secp256k1fx.OutputOwners,
+	expiry uint64,
+	registerFee uint64,
+	options ...common.Option,
+) (*txs.RegisterNameTx, error) {
+	return b.Builder.NewRegisterNameTx(
+		name,
+		target,
+		owner,
+		expiry,
+		registerFee,
+		common.UnionOptions(b.options, options)...,
+	)
+}
+
+func (b *builderWithOptions) NewUpdateNameTx(
+	current *names.Record,
+	update NameUpdate,
+	options ...common.Option,
+) (*txs.UpdateNameTx, error) {
+	return b.Builder.NewUpdateNameTx(
+		current,
+		update,
 		common.UnionOptions(b.options, options)...,
 	)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/ids"
 	"github.com/lasthyphen/dijetsnodesgo/utils/set"
 	"github.com/lasthyphen/dijetsnodesgo/utils/units"
+	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs/txheap"
 )
@@ -174,7 +175,7 @@ func (m *mempool) Add(tx *txs.Tx) error {
 		)
 	}
 
-	inputs := tx.Unsigned.InputIDs()
+	inputs := conflictIDs(tx)
 	if m.consumedUTXOs.Overlaps(inputs) {
 		return fmt.Errorf("tx %s conflicts with a transaction in the mempool", txID)
 	}
@@ -297,6 +298,24 @@ func (m *mempool) deregister(tx *txs.Tx) {
 	m.bytesAvailable += len(txBytes)
 	m.bytesAvailableMetric.Set(float64(m.bytesAvailable))
 
-	inputs := tx.Unsigned.InputIDs()
+	inputs := conflictIDs(tx)
 	m.consumedUTXOs.Difference(inputs)
+}
+
+// conflictIDs returns the IDs that no other transaction in the mempool may
+// share with [tx]: the UTXOs it consumes and, for name transactions, the
+// name and target it claims. The block builder includes mempool
+// transactions without re-verifying them against each other, so two pending
+// transactions for the same name would otherwise make every block built from
+// them invalid.
+func conflictIDs(tx *txs.Tx) set.Set[ids.ID] {
+	conflicts := set.NewSet[ids.ID](0)
+	conflicts.Union(tx.Unsigned.InputIDs())
+	switch utx := tx.Unsigned.(type) {
+	case *txs.RegisterNameTx:
+		conflicts.Add(names.NameClaim(utx.Name), names.TargetClaim(utx.Target))
+	case *txs.UpdateNameTx:
+		conflicts.Add(names.NameClaim(utx.Name), names.TargetClaim(utx.Target))
+	}
+	return conflicts
 }

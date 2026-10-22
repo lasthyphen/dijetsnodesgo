@@ -11,6 +11,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/ids"
 	"github.com/lasthyphen/dijetsnodesgo/vms/components/djtx"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/status"
+	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/txs"
 )
 
@@ -54,6 +55,8 @@ type diff struct {
 
 	// map of modified UTXOID -> *UTXO if the UTXO is nil, it has been removed
 	modifiedUTXOs map[ids.ID]*utxoModification
+
+	nameChanges nameChanges
 }
 
 type utxoModification struct {
@@ -443,8 +446,43 @@ func (d *diff) DeleteUTXO(utxoID ids.ID) {
 	}
 }
 
+func (d *diff) GetName(name string) (*names.Record, error) {
+	if record, ok := d.nameChanges.getName(name); ok {
+		return record, nil
+	}
+	parentState, ok := d.stateVersions.GetState(d.parentID)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrMissingParentState, d.parentID)
+	}
+	return parentState.GetName(name)
+}
+
+func (d *diff) PutName(record *names.Record) {
+	d.nameChanges.putName(record)
+}
+
+func (d *diff) GetNameTarget(target ids.ShortID) (string, error) {
+	if name, ok, err := d.nameChanges.getTarget(target); ok {
+		return name, err
+	}
+	parentState, ok := d.stateVersions.GetState(d.parentID)
+	if !ok {
+		return "", fmt.Errorf("%w: %s", ErrMissingParentState, d.parentID)
+	}
+	return parentState.GetNameTarget(target)
+}
+
+func (d *diff) PutNameTarget(target ids.ShortID, name string) {
+	d.nameChanges.putTarget(target, name)
+}
+
+func (d *diff) DeleteNameTarget(target ids.ShortID) {
+	d.nameChanges.putTarget(target, "")
+}
+
 func (d *diff) Apply(baseState State) {
 	baseState.SetTimestamp(d.timestamp)
+	d.nameChanges.apply(baseState)
 	for subnetID, supply := range d.currentSupply {
 		baseState.SetCurrentSupply(subnetID, supply)
 	}
