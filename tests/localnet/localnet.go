@@ -1,11 +1,8 @@
-//go:build arc_e2e
-
-// Package arce2e runs a real 5-node staking network locally and
-// exercises Arcs end to end. Run with:
+// Package localnet runs a real 5-node staking network on this machine for
+// end-to-end tests. Build the node first:
 //
 //	./scripts/build_dijets.sh
-//	go test -tags arc_e2e -timeout 60m -v ./tests/arc/
-package arce2e
+package localnet
 
 import (
 	"context"
@@ -27,11 +24,20 @@ import (
 )
 
 const (
-	networkID     = 1337
-	numNodes      = 5
-	basePort      = 19650
+	NetworkID     = 1337
+	NumNodes      = 5
 	bootstrapWait = 5 * time.Minute
 )
+
+// Options distinguish the networks of different test suites, so that they
+// never share ports or directories.
+type Options struct {
+	// Name prefixes the network directory and the genesis message.
+	Name string
+	// BasePort is node1's HTTP port. Node i uses BasePort+2(i-1) for HTTP
+	// and the next port for staking.
+	BasePort int
+}
 
 // Node IDs of staking/local/staker{1..5}.crt, in order.
 var stakerNodeIDs = []string{
@@ -42,20 +48,22 @@ var stakerNodeIDs = []string{
 	"NodeID-P7oB2McjBGgW2NXXWVYjV8JEDFoW9xDE5",
 }
 
-type node struct {
-	idx         int
-	nodeID      ids.NodeID
+type Node struct {
+	Idx         int
+	NodeID      ids.NodeID
 	httpPort    int
 	stakingPort int
-	dataDir     string
+	DataDir     string
 	cmd         *exec.Cmd
 	exited      chan struct{}
-	whitelist   []ids.ID
+	// Whitelist lists the subnets the node validates, applied on its next
+	// start.
+	Whitelist []ids.ID
 }
 
-func (n *node) URI() string { return fmt.Sprintf("http://127.0.0.1:%d", n.httpPort) }
+func (n *Node) URI() string { return fmt.Sprintf("http://127.0.0.1:%d", n.httpPort) }
 
-func (n *node) running() bool {
+func (n *Node) Running() bool {
 	if n.cmd == nil {
 		return false
 	}
@@ -67,14 +75,15 @@ func (n *node) running() bool {
 	}
 }
 
-type network struct {
+type Network struct {
 	t           *testing.T
+	options     Options
 	repoRoot    string
 	binary      string
-	dir         string
+	Dir         string
 	genesisPath string
 	pluginDir   string
-	nodes       []*node
+	Nodes       []*Node
 }
 
 func repoRoot(t *testing.T) string {
@@ -83,97 +92,106 @@ func repoRoot(t *testing.T) string {
 	return filepath.Clean(filepath.Join(wd, "..", ".."))
 }
 
-func newNetwork(t *testing.T) *network {
+// New prepares, but doesn't start, a network. The node binary is
+// $E2E_NODE_BINARY, $ARC_NODE_BINARY or build/dijetsnodesgo.
+func New(t *testing.T, options Options) *Network {
 	root := repoRoot(t)
-	binary := os.Getenv("ARC_NODE_BINARY")
+	binary := os.Getenv("E2E_NODE_BINARY")
+	if binary == "" {
+		binary = os.Getenv("ARC_NODE_BINARY")
+	}
 	if binary == "" {
 		binary = filepath.Join(root, "build", "dijetsnodesgo")
 	}
 	_, err := os.Stat(binary)
 	require.NoError(t, err, "build the node first: ./scripts/build_dijets.sh")
 
-	dir, err := os.MkdirTemp("", "arc-e2e-")
+	dir, err := os.MkdirTemp("", options.Name+"-e2e-")
 	require.NoError(t, err)
 	t.Logf("network directory (kept for inspection): %s", dir)
 
-	n := &network{
+	n := &Network{
 		t:         t,
+		options:   options,
 		repoRoot:  root,
 		binary:    binary,
-		dir:       dir,
+		Dir:       dir,
 		pluginDir: filepath.Join(dir, "plugins"),
 	}
 	require.NoError(t, os.MkdirAll(n.pluginDir, 0o750))
 	n.writeGenesis()
 
-	for i := 0; i < numNodes; i++ {
+	for i := 0; i < NumNodes; i++ {
 		nodeID, err := ids.NodeIDFromString(stakerNodeIDs[i])
 		require.NoError(t, err)
-		n.nodes = append(n.nodes, &node{
-			idx:         i + 1,
-			nodeID:      nodeID,
-			httpPort:    basePort + 2*i,
-			stakingPort: basePort + 2*i + 1,
-			dataDir:     filepath.Join(dir, fmt.Sprintf("node%d", i+1)),
+		n.Nodes = append(n.Nodes, &Node{
+			Idx:         i + 1,
+			NodeID:      nodeID,
+			httpPort:    options.BasePort + 2*i,
+			stakingPort: options.BasePort + 2*i + 1,
+			DataDir:     filepath.Join(dir, fmt.Sprintf("node%d", i+1)),
 		})
 	}
-	t.Cleanup(n.stopAll)
+	t.Cleanup(n.StopAll)
 	return n
 }
 
 // writeGenesis derives a custom-network genesis from the local genesis with a
 // recent start time; the shipped local genesis' staking periods have expired.
-func (n *network) writeGenesis() {
+func (n *Network) writeGenesis() {
 	raw, err := os.ReadFile(filepath.Join(n.repoRoot, "genesis", "genesis_local.json"))
 	require.NoError(n.t, err)
 	var g map[string]interface{}
 	require.NoError(n.t, json.Unmarshal(raw, &g))
-	g["networkID"] = networkID
+	g["networkID"] = NetworkID
 	g["startTime"] = time.Now().Add(-time.Minute).Unix()
-	g["message"] = "arc e2e"
+	g["message"] = n.options.Name + " e2e"
 	out, err := json.MarshalIndent(g, "", "  ")
 	require.NoError(n.t, err)
-	n.genesisPath = filepath.Join(n.dir, "genesis.json")
+	n.genesisPath = filepath.Join(n.Dir, "genesis.json")
 	require.NoError(n.t, os.WriteFile(n.genesisPath, out, 0o600))
 }
 
-func (n *network) node(i int) *node { return n.nodes[i-1] }
+// Node returns node [i], counting from 1.
+func (n *Network) Node(i int) *Node { return n.Nodes[i-1] }
 
-func (n *network) start(nd *node) {
+// Start starts a node without waiting for it to bootstrap.
+func (n *Network) Start(nd *Node, extraArgs ...string) {
 	args := []string{
-		fmt.Sprintf("--network-id=%d", networkID),
+		fmt.Sprintf("--network-id=%d", NetworkID),
 		"--genesis=" + n.genesisPath,
-		"--data-dir=" + nd.dataDir,
+		"--data-dir=" + nd.DataDir,
 		// Plugins are loaded from <build-dir>/plugins; use an empty one. The
 		// U-chain EVM is compiled into the node.
-		"--build-dir=" + n.dir,
+		"--build-dir=" + n.Dir,
 		"--http-host=127.0.0.1",
 		fmt.Sprintf("--http-port=%d", nd.httpPort),
 		fmt.Sprintf("--staking-port=%d", nd.stakingPort),
 		"--public-ip=127.0.0.1",
-		fmt.Sprintf("--staking-tls-cert-file=%s", filepath.Join(n.repoRoot, "staking", "local", fmt.Sprintf("staker%d.crt", nd.idx))),
-		fmt.Sprintf("--staking-tls-key-file=%s", filepath.Join(n.repoRoot, "staking", "local", fmt.Sprintf("staker%d.key", nd.idx))),
+		fmt.Sprintf("--staking-tls-cert-file=%s", filepath.Join(n.repoRoot, "staking", "local", fmt.Sprintf("staker%d.crt", nd.Idx))),
+		fmt.Sprintf("--staking-tls-key-file=%s", filepath.Join(n.repoRoot, "staking", "local", fmt.Sprintf("staker%d.key", nd.Idx))),
 		"--log-level=info",
 		"--log-display-level=warn",
 		"--health-check-frequency=2s",
 	}
-	if nd.idx != 1 {
-		first := n.nodes[0]
+	if nd.Idx != 1 {
+		first := n.Nodes[0]
 		args = append(args,
 			fmt.Sprintf("--bootstrap-ips=127.0.0.1:%d", first.stakingPort),
-			"--bootstrap-ids="+first.nodeID.String(),
+			"--bootstrap-ids="+first.NodeID.String(),
 		)
 	}
-	if len(nd.whitelist) > 0 {
-		subnets := make([]string, len(nd.whitelist))
-		for i, s := range nd.whitelist {
+	if len(nd.Whitelist) > 0 {
+		subnets := make([]string, len(nd.Whitelist))
+		for i, s := range nd.Whitelist {
 			subnets[i] = s.String()
 		}
 		args = append(args, "--whitelisted-subnets="+strings.Join(subnets, ","))
 	}
+	args = append(args, extraArgs...)
 
-	require.NoError(n.t, os.MkdirAll(nd.dataDir, 0o750))
-	logFile, err := os.OpenFile(filepath.Join(nd.dataDir, "stdout.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
+	require.NoError(n.t, os.MkdirAll(nd.DataDir, 0o750))
+	logFile, err := os.OpenFile(filepath.Join(nd.DataDir, "stdout.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 	require.NoError(n.t, err)
 	cmd := exec.Command(n.binary, args...)
 	cmd.Stdout = logFile
@@ -186,11 +204,11 @@ func (n *network) start(nd *node) {
 		_ = logFile.Close()
 		close(nd.exited)
 	}()
-	n.t.Logf("started node%d (%s) whitelist=%v", nd.idx, nd.nodeID, nd.whitelist)
+	n.t.Logf("started node%d (%s) whitelist=%v", nd.Idx, nd.NodeID, nd.Whitelist)
 }
 
-func (n *network) stop(nd *node) {
-	if !nd.running() {
+func (n *Network) Stop(nd *Node) {
+	if !nd.Running() {
 		return
 	}
 	_ = nd.cmd.Process.Signal(syscall.SIGTERM)
@@ -200,48 +218,51 @@ func (n *network) stop(nd *node) {
 		_ = nd.cmd.Process.Kill()
 		<-nd.exited
 	}
-	n.t.Logf("stopped node%d", nd.idx)
+	n.t.Logf("stopped node%d", nd.Idx)
 }
 
-func (n *network) stopAll() {
-	for _, nd := range n.nodes {
-		n.stop(nd)
+func (n *Network) StopAll() {
+	for _, nd := range n.Nodes {
+		n.Stop(nd)
 	}
 }
 
-func (n *network) startAll() {
-	for _, nd := range n.nodes {
-		n.start(nd)
+// StartAll starts every node and waits for the primary network chains to
+// bootstrap.
+func (n *Network) StartAll(extraArgs ...string) {
+	for _, nd := range n.Nodes {
+		n.Start(nd, extraArgs...)
 	}
-	for _, nd := range n.nodes {
-		n.awaitBootstrapped(nd, "M", "V", "U")
+	for _, nd := range n.Nodes {
+		n.AwaitBootstrapped(nd, "M", "V", "U")
 	}
 }
 
-func (n *network) restartAll() {
-	n.stopAll()
-	n.startAll()
+func (n *Network) RestartAll(extraArgs ...string) {
+	n.StopAll()
+	n.StartAll(extraArgs...)
 }
 
-func (n *network) awaitBootstrapped(nd *node, chains ...string) {
+func (n *Network) AwaitBootstrapped(nd *Node, chains ...string) {
 	client := info.NewClient(nd.URI())
-	eventually(n.t, bootstrapWait, time.Second, func() (bool, string) {
-		if !nd.running() {
-			n.t.Fatalf("node%d exited; see %s", nd.idx, filepath.Join(nd.dataDir, "stdout.log"))
+	Eventually(n.t, bootstrapWait, time.Second, func() (bool, string) {
+		if !nd.Running() {
+			n.t.Fatalf("node%d exited; see %s", nd.Idx, filepath.Join(nd.DataDir, "stdout.log"))
 		}
 		for _, chain := range chains {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			ok, err := client.IsBootstrapped(ctx, chain)
 			cancel()
 			if err != nil || !ok {
-				return false, fmt.Sprintf("node%d chain %s not bootstrapped (err=%v)", nd.idx, chain, err)
+				return false, fmt.Sprintf("node%d chain %s not bootstrapped (err=%v)", nd.Idx, chain, err)
 			}
 		}
 		return true, ""
 	})
 }
 
-func eventually(t *testing.T, timeout, interval time.Duration, cond func() (bool, string)) {
+// Eventually polls [cond] until it holds, failing the test after [timeout].
+func Eventually(t *testing.T, timeout, interval time.Duration, cond func() (bool, string)) {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
 	last := ""
@@ -258,17 +279,17 @@ func eventually(t *testing.T, timeout, interval time.Duration, cond func() (bool
 	}
 }
 
-// dump writes [v] as indented JSON to <network dir>/api-examples/<name>.json.
-func (n *network) dump(name string, v interface{}) {
-	dir := filepath.Join(n.dir, "api-examples")
+// Dump writes [v] as indented JSON to <network dir>/api-examples/<name>.json.
+func (n *Network) Dump(name string, v interface{}) {
+	dir := filepath.Join(n.Dir, "api-examples")
 	require.NoError(n.t, os.MkdirAll(dir, 0o750))
 	b, err := json.MarshalIndent(v, "", "  ")
 	require.NoError(n.t, err)
 	require.NoError(n.t, os.WriteFile(filepath.Join(dir, name+".json"), b, 0o600))
 }
 
-// evmBlockNumber queries the U-chain's EVM JSON-RPC endpoint.
-func evmBlockNumber(uri string) (string, error) {
+// EVMBlockNumber queries the U-chain's EVM JSON-RPC endpoint.
+func EVMBlockNumber(uri string) (string, error) {
 	body := strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}`)
 	resp, err := http.Post(uri+"/ext/bc/U/rpc", "application/json", body)
 	if err != nil {
@@ -290,8 +311,8 @@ func evmBlockNumber(uri string) (string, error) {
 	return out.Result, nil
 }
 
-// rawCall sends a JSON-RPC request and returns the error code, if any.
-func rawCall(uri, path, method string) (int, error) {
+// RawCall sends a JSON-RPC request and returns the error code, if any.
+func RawCall(uri, path, method string) (int, error) {
 	body := strings.NewReader(fmt.Sprintf(`{"jsonrpc":"2.0","id":1,"method":%q,"params":{}}`, method))
 	resp, err := http.Post(uri+path, "application/json", body)
 	if err != nil {

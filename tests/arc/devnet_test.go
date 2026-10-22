@@ -14,6 +14,7 @@ import (
 	"github.com/lasthyphen/dijetsnodesgo/arc/workflow"
 	"github.com/lasthyphen/dijetsnodesgo/genesis"
 	"github.com/lasthyphen/dijetsnodesgo/ids"
+	"github.com/lasthyphen/dijetsnodesgo/tests/localnet"
 	"github.com/lasthyphen/dijetsnodesgo/utils/constants"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm"
 	"github.com/lasthyphen/dijetsnodesgo/vms/secp256k1fx"
@@ -40,12 +41,12 @@ func TestDevNetwork(t *testing.T) {
 		hold = d
 	}
 
-	net := newNetwork(t)
+	net := localnet.New(t, localnet.Options{Name: "arc", BasePort: 19650})
 	kc := secp256k1fx.NewKeychain(genesis.EWOQKey)
 	owner := &secp256k1fx.OutputOwners{Threshold: 1, Addrs: []ids.ShortID{genesis.EWOQKey.PublicKey().Address()}}
 
-	net.startAll()
-	n1 := net.node(1)
+	net.StartAll()
+	n1 := net.Node(1)
 	pClient := platformvm.NewClient(n1.URI())
 	mc := arc.NewClient(n1.URI())
 	wallet, err := primary.NewWalletFromURI(ctxWithTimeout(t, time.Minute), n1.URI(), kc)
@@ -59,17 +60,17 @@ func TestDevNetwork(t *testing.T) {
 		require.NoError(t, err)
 	}
 	// node3 and node4 track both subnets, so either can observe every chain.
-	net.node(1).whitelist = []ids.ID{alpha.subnetID}
-	net.node(2).whitelist = []ids.ID{alpha.subnetID}
-	net.node(3).whitelist = []ids.ID{alpha.subnetID, beta.subnetID}
-	net.node(4).whitelist = []ids.ID{alpha.subnetID, beta.subnetID}
-	net.node(5).whitelist = []ids.ID{beta.subnetID}
-	net.restartAll()
+	net.Node(1).Whitelist = []ids.ID{alpha.subnetID}
+	net.Node(2).Whitelist = []ids.ID{alpha.subnetID}
+	net.Node(3).Whitelist = []ids.ID{alpha.subnetID, beta.subnetID}
+	net.Node(4).Whitelist = []ids.ID{alpha.subnetID, beta.subnetID}
+	net.Node(5).Whitelist = []ids.ID{beta.subnetID}
+	net.RestartAll()
 
 	for _, c := range []*testArc{alpha, beta} {
 		committee := make([]workflow.Member, 0, len(c.members))
 		for _, idx := range c.members {
-			committee = append(committee, workflow.Member{NodeID: net.node(idx).nodeID, Weight: 20})
+			committee = append(committee, workflow.Member{NodeID: net.Node(idx).NodeID, Weight: 20})
 		}
 		start := time.Now().Add(20 * time.Second)
 		res, err := workflow.Create(ctxWithTimeout(t, 5*time.Minute), pWallet, pClient, mc, workflow.Request{
@@ -85,19 +86,19 @@ func TestDevNetwork(t *testing.T) {
 	}
 	for _, c := range []*testArc{alpha, beta} {
 		for _, idx := range c.members {
-			awaitLifecycle(t, net.node(idx), c.chainID, arc.Active)
+			awaitLifecycle(t, net.Node(idx), c.chainID, arc.Active)
 		}
 	}
 	gammaID, err := pWallet.IssueCreateChainTx(beta.subnetID, []byte("not an avm genesis"), constants.AVMID, workflow.FxIDs, "gamma",
 		common.WithContext(ctxWithTimeout(t, txTimeout)))
 	require.NoError(t, err)
-	awaitLifecycle(t, net.node(5), gammaID, arc.Failed)
+	awaitLifecycle(t, net.Node(5), gammaID, arc.Failed)
 
-	alphaWallet, alphaAsset := chainWallet(t, net.node(1).URI(), alpha.chainID, kc)
-	betaWallet, betaAsset := chainWallet(t, net.node(5).URI(), beta.chainID, kc)
+	alphaWallet, alphaAsset := chainWallet(t, net.Node(1).URI(), alpha.chainID, kc)
+	betaWallet, betaAsset := chainWallet(t, net.Node(5).URI(), beta.chainID, kc)
 
-	uris := make([]string, 0, numNodes)
-	for _, nd := range net.nodes {
+	uris := make([]string, 0, localnet.NumNodes)
+	for _, nd := range net.Nodes {
 		uris = append(uris, nd.URI())
 	}
 	t.Logf("dev network ready for %s", hold)
@@ -105,7 +106,7 @@ func TestDevNetwork(t *testing.T) {
 	t.Logf("  alpha:  %s (committee node1-3)", alpha.chainID)
 	t.Logf("  beta:   %s (committee node3-5)", beta.chainID)
 	t.Logf("  gamma:  %s (failed: invalid genesis)", gammaID)
-	t.Logf("  explorer: ?registry=%s&observers=%s,%s", n1.URI(), net.node(3).URI(), net.node(4).URI())
+	t.Logf("  explorer: ?registry=%s&observers=%s,%s", n1.URI(), net.Node(3).URI(), net.Node(4).URI())
 
 	// Keep a little activity going so observed statistics change.
 	recipient := ids.GenerateTestShortID()
