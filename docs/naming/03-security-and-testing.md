@@ -35,7 +35,7 @@
 | Abuse of the demo | Per-IP and per-session rate limits, CSRF, `SameSite=Strict` `HttpOnly` cookies, size limits, strict CSP, `textContent`-only rendering | `server.test.mjs` |
 | Exposure of private keys | No API accepts or returns keys; the agent key file is 0600; the demo server holds no key | Code review: `txservice/service.go` `LoadOrCreateKey` |
 | Misattribution in the explorer view | A name is shown only for an ACTIVE reverse binding; memo claims are verified against history; outputs classified with stated evidence; attribution caveat attached | `TestPayByName` (receipt); e2e phases 7, 8 and 12 |
-| Activation breaking indexers and old nodes | Naming time unscheduled on mainnet and Lothar; new type IDs appended after the Banff blocks | `TestNamingNotActivated`; `TestNamingTxTypeIDs`; `TestBanffBlockWithNameTx` |
+| Activation breaking indexers and old nodes | Naming active on mainnet only from its new genesis, so no existing node or index has to change; unscheduled on Lothar; new type IDs appended after the Banff blocks | `TestNamingNotActivated`; `TestMainnetNaming`; `TestNamingTxTypeIDs`; `TestBanffBlockWithNameTx` |
 
 ### Residual risks
 

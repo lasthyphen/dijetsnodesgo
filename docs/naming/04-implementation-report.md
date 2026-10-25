@@ -79,7 +79,7 @@ The 21 failures predate this work:
 | Compare-and-swap versions; generations and record IDs | Stale updates fail instead of overwriting; reassignment after release is detectable |
 | New codec types registered after the Banff blocks | Upstream later used the same layout; existing type IDs are unchanged (`TestNamingTxTypeIDs`) |
 | Mempool name and target claims | The block builder doesn't re-verify mempool transactions against each other |
-| Activation unscheduled on mainnet and Lothar | Ortelius and old nodes must understand the types first |
+| Activation unscheduled on Lothar (mainnet: active from its 2026-10-25 genesis) | Ortelius and old nodes must understand the types first |
 | A 1-of-2 on-chain allowance for Bob | The protocol caps exposure and the user can revoke unilaterally. Bob's authority comes from V-chain UTXO ownership, not from any Arc |
 | `txservice` as a separate process | The only key holder. The web server and the LLM never see keys or approval |
 | Shared `tests/localnet` launcher | The Arc and naming suites share one implementation; they use different ports |

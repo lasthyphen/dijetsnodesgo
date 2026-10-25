@@ -130,7 +130,12 @@ is a governance question and is left for a future version.
 
 `version.GetNamingTime(networkID)` follows the `GetBanffTime` pattern:
 
-* **Mainnet and Lothar:** not scheduled (year 10000), because Ortelius and old nodes
+* **Mainnet:** active from genesis (1.0.0). Mainnet was relaunched with a new
+  genesis on 2026-10-25, so no running node or indexer had to be upgraded
+  first; Banff is active from genesis too. Indexers of this network must
+  understand Banff blocks and the name transactions (the Dijets explorer does;
+  Ortelius does not).
+* **Lothar:** not scheduled (year 10000), because Ortelius and old nodes
   must be upgraded first (architecture report §8).
 * **Local and custom networks:** active, provided Banff is also active.
 
@@ -142,7 +147,7 @@ therefore also by the mempool verifier.
 Parameters are per network and consensus-critical. They are **not** node flags,
 because validators must agree on them.
 
-| | Local and custom | Mainnet and Lothar (when scheduled) |
+| | Local and custom | Mainnet (and Lothar when scheduled) |
 |---|---|---|
 | `minTerm` | 1 min | 30 days |
 | `maxTerm` | 5 years | 5 years |

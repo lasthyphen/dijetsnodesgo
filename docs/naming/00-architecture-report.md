@@ -15,7 +15,7 @@ the design that `01-design.md` specifies. Every path is relative to
 | Package renames | `vms/components/avax` → `vms/components/djtx`; `snow/engine/avalanche` → `snow/engine/dijets`; `snow/consensus/avalanche` → `snow/consensus/dijets` |
 | Native asset | Name "Dijets", symbol **DJT**, denomination 9 (`genesis/genesis.go:264-266`); the asset alias `"DJT"` is registered at `vms/avm/vm.go:450` |
 | Networks | mainnet 1 (`dijets`), lothar 5 (`lothar`), local 12345 (`local`), any other ID uses HRP `custom` (`utils/constants/network_ids.go`) |
-| Upgrades | Banff is **not** active on mainnet or Lothar (scheduled for year 10000, `version/constants.go:91-95`); it is active on local and custom networks |
+| Upgrades | Banff is **not** active on Lothar (scheduled for year 10000, `version/constants.go`); it is active on local and custom networks, and on mainnet from its 2026-10-25 genesis (1.0.0) |
 | Fork additions already present | Arcs prototype (`arc/`, `vms/platformvm/arc_registry.go`, `chains/manager.go` local status and DD-8 fix, `tests/arc/`); see `docs/arcs/` |
 
 ## 2. V-chain transaction format and validation pipeline

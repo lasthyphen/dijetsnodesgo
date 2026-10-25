@@ -7,7 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/lasthyphen/dijetsnodesgo/database"
+	"github.com/lasthyphen/dijetsnodesgo/utils/constants"
 	"github.com/lasthyphen/dijetsnodesgo/utils/crypto"
+	"github.com/lasthyphen/dijetsnodesgo/version"
 	"github.com/lasthyphen/dijetsnodesgo/vms/components/djtx"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/names"
 	"github.com/lasthyphen/dijetsnodesgo/vms/platformvm/state"
@@ -44,7 +46,12 @@ func (h *nameHarness) unix(d time.Duration) uint64 {
 // sign builds the base tx inputs paying [fee] from the first pre-funded key
 // and signs [utx], appending one credential per entry of [authKeys].
 func (h *nameHarness) sign(utx txs.UnsignedTx, fee uint64, authKeys ...[]*crypto.PrivateKeySECP256K1R) *txs.Tx {
-	ins, outs, _, signers, err := h.env.utxosHandler.Spend(preFundedKeys[:1], 0, fee, preFundedKeys[0].PublicKey().Address())
+	return h.signFrom(preFundedKeys[:1], utx, fee, authKeys...)
+}
+
+// signFrom is sign, paying [fee] from [payers].
+func (h *nameHarness) signFrom(payers []*crypto.PrivateKeySECP256K1R, utx txs.UnsignedTx, fee uint64, authKeys ...[]*crypto.PrivateKeySECP256K1R) *txs.Tx {
+	ins, outs, _, signers, err := h.env.utxosHandler.Spend(payers, 0, fee, preFundedKeys[0].PublicKey().Address())
 	require.NoError(h.t, err)
 
 	baseTx := txs.BaseTx{BaseTx: djtx.BaseTx{
@@ -271,6 +278,38 @@ func TestNamingNotActivated(t *testing.T) {
 
 	err := h.execute(h.register("alice", alice, alice, h.unix(time.Hour)))
 	require.ErrorIs(t, err, ErrNamingNotActivated)
+}
+
+// Mainnet runs Banff and naming from genesis, with the public registry
+// parameters. Lothar does not schedule naming.
+func TestMainnetNaming(t *testing.T) {
+	require := require.New(t)
+	h := newNameHarness(t)
+	h.now = time.Unix(1792916856, 0) // the mainnet genesis start time
+	h.env.config.BanffTime = version.GetBanffTime(constants.MainnetID)
+	h.env.config.NamingTime = version.GetNamingTime(constants.MainnetID)
+	h.env.config.NamingParams = names.GetParams(constants.MainnetID)
+	require.Equal(names.PublicParams, h.env.config.NamingParams)
+	require.True(h.env.config.IsNamingActivated(h.now))
+
+	// One pre-funded key holds less than the mainnet fee; pay from all of them.
+	register := func(name string, term time.Duration, fee uint64) *txs.Tx {
+		return h.signFrom(preFundedKeys, &txs.RegisterNameTx{
+			Name:       name,
+			Target:     alice.PublicKey().Address(),
+			Owner:      owner(alice),
+			Expiry:     h.unix(term),
+			TargetAuth: &secp256k1fx.Input{SigIndices: []uint32{0}},
+		}, fee, keys(alice))
+	}
+	year := 365 * 24 * time.Hour
+	// The development fee and a term under 30 days are refused on mainnet.
+	require.Error(h.execute(register("alice", year, names.DevelopmentParams.RegisterFee)))
+	require.Error(h.execute(register("alice", time.Hour, names.PublicParams.RegisterFee)))
+	require.NoError(h.execute(register("alice", year, names.PublicParams.RegisterFee)))
+	require.Equal(names.StatusActive, h.status("alice"))
+
+	require.True(version.GetNamingTime(constants.LotharID).After(h.now))
 }
 
 func TestUpdateNameTarget(t *testing.T) {

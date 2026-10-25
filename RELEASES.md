@@ -2,11 +2,21 @@
 
 ## Dijets 1.0.0
 
-The first release numbered as Dijets. It follows 0.1.3 and is compatible with 0.1.1 and later; there is no protocol, database or plugin change (database `v1.4.5`, plugin version `20`).
+The first release numbered as Dijets. It follows 0.1.3. Database `v1.4.5` and plugin version `20` are unchanged.
+
+### New mainnet genesis
+
+- Mainnet is relaunched from a new genesis starting 2026-10-25 08:27:36 UTC, with five new genesis validators (`docs/mainnet-cluster.md`). Allocations, the genesis message and the U-Chain genesis are unchanged, so the V-Chain, U-Chain and DJT asset IDs stay the same; the M-Chain genesis changes.
+- Banff and native naming are active on mainnet from genesis. Mainnet uses the public registry rules: terms of 30 days to 5 years, a 30-day grace period and a 1 DJT registration fee. Lothar is unchanged: neither is scheduled there.
+- The mainnet beacon list has the new validators' node IDs and no addresses yet; start nodes with `--bootstrap-ips` and `--bootstrap-ids` until it does.
+- 0.1.x nodes carry the previous mainnet genesis and cannot join this network.
+- Added `scripts/run_mainnet_cluster.sh` (runs the five genesis validators on one host) and `scripts/nodeid` (prints a certificate's node ID).
+
+### Version
 
 - `info.getNodeVersion`, `--version` and `info.peers` report the node as `Dijets/1.0.0` instead of `avalanche/0.1.3`.
 - The peer handshake still sends the legacy form (`avalanche/1.0.0`), because 0.1.x nodes reject any other prefix. Peers sending either `Dijets/` or `avalanche/` are accepted. A later release can send `Dijets/` once 0.1.x nodes are no longer supported.
-- 0.x versions count as major version 1 when checking compatibility, so 1.0.0 and 0.1.x nodes connect to each other.
+- 0.x versions count as major version 1 when checking compatibility, so 1.0.0 and 0.1.x nodes connect to each other on networks they share (local, custom and Lothar).
 
 ## [v1.9.4](https://github.com/lasthyphen/dijetsnodesgo/releases/tag/v1.9.4)
 

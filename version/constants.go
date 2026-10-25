@@ -88,16 +88,20 @@ var (
 	}
 	ApricotPhase6DefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 
+	// Mainnet activates Banff and naming at genesis: its 2026-10-25 genesis
+	// starts after both dates. The U-chain EVM already applies Banff from
+	// block 0 on chain ID 98200.
 	BanffTimes = map[uint32]time.Time{
-		constants.MainnetID: time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
+		constants.MainnetID: time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
 		constants.LotharID:    time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
 	}
 	BanffDefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)
 
-	// Native naming is not scheduled on public networks: indexers that decode
-	// M-chain blocks must understand the new transaction types first.
+	// Native naming is active on mainnet from genesis. It is not scheduled on
+	// Lothar: indexers that decode its M-chain blocks must understand the new
+	// transaction types first.
 	NamingTimes = map[uint32]time.Time{
-		constants.MainnetID: time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
+		constants.MainnetID: time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC),
 		constants.LotharID:    time.Date(10000, time.December, 1, 0, 0, 0, 0, time.UTC),
 	}
 	NamingDefaultTime = time.Date(2020, time.December, 5, 5, 0, 0, 0, time.UTC)

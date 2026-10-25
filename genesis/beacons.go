@@ -11,13 +11,10 @@ import (
 func getIPs(networkID uint32) []string {
 	switch networkID {
 	case constants.MainnetID:
-		return []string{
-			"20.108.178.171:9651",
-			"20.108.178.171:9653",
-			"20.108.178.171:9655",
-			"20.108.178.171:9657",
-			"20.108.178.171:9659",
-		}
+		// The beacons are the genesis validators (getNodeIDs). Their
+		// addresses are added once the hosts' static IPs are known; until
+		// then, nodes are started with --bootstrap-ips and --bootstrap-ids.
+		return nil
 	case constants.LotharID:
 		return []string{
 			"127.0.0.4:9651",
@@ -36,11 +33,11 @@ func getNodeIDs(networkID uint32) []string {
 	switch networkID {
 	case constants.MainnetID:
 		return []string{
-			"NodeID-LbqzrSMKAssm5Ds2bJ8LPwymnGJbrybCN",
-			"NodeID-KnSQaB5tDy1rgZWHFdCHSwTTdNvRNkLBP",
-			"NodeID-Nh98zaRumrBz3K5i3SQG1T3WrhJv1Jxmb",
-			"NodeID-4tsvZR6LEaVc8mbc5K4Kusji21YZDdk39",
-			"NodeID-L7rEYewk8URjAg3kp39zrYcfRk8hH14Y5",
+			"NodeID-FU6TByNdgJhbQF8WeFwfKuD3QnMcQJMjP",
+			"NodeID-MxGY1zYcaP9CM1LvW9RKBDZfbZa5dBSK3",
+			"NodeID-HTdNxjm2cKe1hUzdHBiEvA3zr4wYj3Vg9",
+			"NodeID-5nJLrvj92ztUAGQrfcPHzuHdm5X9ykeRd",
+			"NodeID-71qPRtPrLBcaHrAMKF39tNrExJWhfaKpr",
 		}
 	case constants.LotharID:
 		return []string{
