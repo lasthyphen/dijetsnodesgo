@@ -74,6 +74,7 @@ The flags it passes:
 | `--network-id=mainnet` | all | The built-in genesis; mainnet refuses `--genesis` |
 | `--staking-tls-cert-file`, `--staking-tls-key-file` | all | The validator's identity |
 | `--http-host=127.0.0.1`, `--http-port`, `--staking-port`, `--data-dir` | all | One set per node; the APIs stay on the host |
+| `--api-keystore-enabled=false` | all | The keystore API stores keys on the node; validators don't need it |
 | `--public-ip=$PUBLIC_IP` | all | The address peers on other hosts dial. With `127.0.0.1` only this host can join |
 | `--bootstrap-ips=127.0.0.1:<node 1 staking port>`, `--bootstrap-ids=<node 1>` | 2-5 | The genesis has no beacon addresses yet |
 | `--index-enabled`, `--index-subnet-chains` | 1 | For the explorer. Must be on from node 1's **first** start; otherwise delete its database and resync |
@@ -105,17 +106,64 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 ```
 
-Firewall: open the staking ports (9651, 9653, 9655, 9657, 9659) only if nodes
-on other hosts should join. Never open the HTTP ports.
+Firewall: open the staking ports (9651, 9653, 9655, 9657, 9659) to any
+source, so that nodes on other hosts can join. Never open the HTTP ports.
 
-Once the host's static IP is known, add it to `getIPs` in
-`genesis/beacons.go` (one entry per validator, in the order of `getNodeIDs`),
-so that other nodes need no bootstrap flags.
+The genesis lists these five as the mainnet beacons, at `20.108.178.171`
+(`genesis/beacons.go`), so the cluster must run there with
+`PUBLIC_IP=20.108.178.171` and the default `BASE_PORT`.
+
+## Joining from another host
+
+Any other node joins with no bootstrap flags; it syncs from the beacons:
+
+```sh
+./build/dijetsnodesgo --network-id=mainnet --http-host=127.0.0.1
+```
+
+It doesn't validate unless it is added as a validator (`AddValidatorTx`,
+at least 2,000 DJT).
+
+## A public API
+
+Wallets, scripts and the browser extension need an HTTPS endpoint. Serve
+one from a node that is not a validator (for example the explorer's node,
+below), started with:
+
+```sh
+--api-keystore-enabled=false   # the keystore API stores users' keys on the node; never expose it
+```
+
+The admin and IPC APIs are off by default; leave them off. Then publish only
+the chain, info and health routes through Caddy, next to the explorer API:
+
+```
+<api domain> {
+	@node path /ext/info /ext/health /ext/bc/V /ext/bc/V/* /ext/bc/M /ext/bc/M/* /ext/bc/U/rpc /ext/bc/U/ws /ext/bc/U/djtx
+	reverse_proxy @node 127.0.0.1:9650
+	reverse_proxy 127.0.0.1:8090
+}
+```
+
+`/ext/bc/M/*` includes the name registry (`/ext/bc/M/names`) and Arcs
+(`/ext/bc/M/arc`). Add `/ext/bc/<Arc chain ID>` for each Arc chain the
+node tracks.
 
 ## Explorer
 
-Point `explorerd` at node 1 with a new database. The previous database holds a
-different network, and `explorerd` refuses to mix them.
+`explorerd` reads a node's index API, which is served only on localhost, so
+it needs a node on its own host. On the cluster host that is node 1. On a
+separate explorer host, run a non-validating node that joins as above, with
+the index flags from its first start:
+
+```sh
+./build/dijetsnodesgo --network-id=mainnet --http-host=127.0.0.1 \
+  --index-enabled --index-subnet-chains --api-keystore-enabled=false \
+  [--whitelisted-subnets=<Arc subnet IDs>]
+```
+
+Give `explorerd` a new database. The previous database holds a different
+network, and `explorerd` refuses to mix them.
 
 ```json
 {

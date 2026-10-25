@@ -79,6 +79,7 @@ for i in 1 2 3 4 5; do
     --staking-tls-cert-file="$KEY_DIR/node$i/staker.crt"
     --staking-tls-key-file="$KEY_DIR/node$i/staker.key"
     --log-display-level=warn
+    --api-keystore-enabled=false
   )
   if [[ $i == 1 ]]; then
     args+=(--index-enabled --index-subnet-chains)

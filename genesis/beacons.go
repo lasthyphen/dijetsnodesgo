@@ -11,10 +11,16 @@ import (
 func getIPs(networkID uint32) []string {
 	switch networkID {
 	case constants.MainnetID:
-		// The beacons are the genesis validators (getNodeIDs). Their
-		// addresses are added once the hosts' static IPs are known; until
-		// then, nodes are started with --bootstrap-ips and --bootstrap-ids.
-		return nil
+		// The genesis validators, in the order of getNodeIDs, as run by
+		// scripts/run_mainnet_cluster.sh on one host (staking ports
+		// 9651, 9653, ..., 9659).
+		return []string{
+			"20.108.178.171:9651",
+			"20.108.178.171:9653",
+			"20.108.178.171:9655",
+			"20.108.178.171:9657",
+			"20.108.178.171:9659",
+		}
 	case constants.LotharID:
 		return []string{
 			"127.0.0.4:9651",
