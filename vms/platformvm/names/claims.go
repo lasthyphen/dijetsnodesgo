@@ -45,7 +45,7 @@ func ParsePaymentMemo(memo []byte) (PaymentMemo, bool) {
 	if len(fields) != 4 || fields[0] != MemoPrefix {
 		return PaymentMemo{}, false
 	}
-	name, ok := strings.CutPrefix(fields[1], "to=")
+	name, ok := cutPrefix(fields[1], "to=")
 	if !ok || Validate(name) != nil {
 		return PaymentMemo{}, false
 	}
@@ -62,10 +62,19 @@ func ParsePaymentMemo(memo []byte) (PaymentMemo, bool) {
 }
 
 func parseField(field, prefix string) (uint64, bool) {
-	s, ok := strings.CutPrefix(field, prefix)
+	s, ok := cutPrefix(field, prefix)
 	if !ok {
 		return 0, false
 	}
 	n, err := strconv.ParseUint(s, 10, 64)
 	return n, err == nil && n > 0
+}
+
+// cutPrefix is strings.CutPrefix, which needs Go 1.20; the node builds with
+// Go 1.18.
+func cutPrefix(s, prefix string) (string, bool) {
+	if !strings.HasPrefix(s, prefix) {
+		return s, false
+	}
+	return s[len(prefix):], true
 }
