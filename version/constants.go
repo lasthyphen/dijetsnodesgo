@@ -18,9 +18,9 @@ const RPCChainVMProtocol uint = 20
 // These are globals that describe network upgrades and node versions
 var (
 	Current = &Semantic{
-		Major: 0,
-		Minor: 1,
-		Patch: 3,
+		Major: 1,
+		Minor: 0,
+		Patch: 0,
 	}
 	CurrentApp = &Application{
 		Major: Current.Major,

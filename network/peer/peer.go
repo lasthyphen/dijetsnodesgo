@@ -508,7 +508,7 @@ func (p *peer) writeMessages() {
 		p.NetworkID,
 		p.Clock.Unix(),
 		mySignedIP.IP.IP,
-		p.VersionCompatibility.Version().String(),
+		p.VersionCompatibility.Version().HandshakeString(),
 		mySignedIP.IP.Timestamp,
 		mySignedIP.Signature,
 		p.MySubnets.List(),

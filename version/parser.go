@@ -26,12 +26,18 @@ func Parse(s string) (*Semantic, error) {
 	}, nil
 }
 
+// ParseApplication parses a peer's version. It accepts the current prefix and
+// the legacy prefix of the 0.1.x releases.
 func ParseApplication(s string) (*Application, error) {
-	if !strings.HasPrefix(s, "avalanche/") {
+	switch {
+	case strings.HasPrefix(s, ApplicationPrefix):
+		s = s[len(ApplicationPrefix):]
+	case strings.HasPrefix(s, LegacyApplicationPrefix):
+		s = s[len(LegacyApplicationPrefix):]
+	default:
 		return nil, fmt.Errorf("application string %q missing required prefix", s)
 	}
 
-	s = s[10:]
 	major, minor, patch, err := parseVersions(s)
 	if err != nil {
 		return nil, err

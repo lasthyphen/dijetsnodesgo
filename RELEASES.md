@@ -1,5 +1,13 @@
 # Release Notes
 
+## Dijets 1.0.0
+
+The first release numbered as Dijets. It follows 0.1.3 and is compatible with 0.1.1 and later; there is no protocol, database or plugin change (database `v1.4.5`, plugin version `20`).
+
+- `info.getNodeVersion`, `--version` and `info.peers` report the node as `Dijets/1.0.0` instead of `avalanche/0.1.3`.
+- The peer handshake still sends the legacy form (`avalanche/1.0.0`), because 0.1.x nodes reject any other prefix. Peers sending either `Dijets/` or `avalanche/` are accepted. A later release can send `Dijets/` once 0.1.x nodes are no longer supported.
+- 0.x versions count as major version 1 when checking compatibility, so 1.0.0 and 0.1.x nodes connect to each other.
+
 ## [v1.9.4](https://github.com/lasthyphen/dijetsnodesgo/releases/tag/v1.9.4)
 
 This version is backwards compatible to [v1.9.0](https://github.com/lasthyphen/dijetsnodesgo/releases/tag/v1.9.0). It is optional, but encouraged. The supported plugin version is `20`.

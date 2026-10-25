@@ -274,3 +274,45 @@ func TestSend(t *testing.T) {
 	err = peer1.AwaitClosed(context.Background())
 	require.NoError(err)
 }
+
+// A 1.0.0 node and a node still on 0.1.3 complete the handshake. The 1.0.0
+// node sends the legacy prefix, which is the only one 0.1.x nodes accept.
+func TestLegacyVersionHandshake(t *testing.T) {
+	require := require.New(t)
+
+	rawPeer0, rawPeer1 := makeRawTestPeers(t)
+	legacy := &version.Application{Major: 0, Minor: 1, Patch: 3}
+	rawPeer1.config.VersionCompatibility = version.NewCompatibility(
+		legacy,
+		version.MinimumCompatibleVersion,
+		time.Time{},
+		version.PrevMinimumCompatibleVersion,
+	)
+
+	start := func(self, other *rawTestPeer) Peer {
+		return Start(
+			self.config,
+			self.conn,
+			other.cert,
+			other.nodeID,
+			NewThrottledMessageQueue(
+				self.config.Metrics,
+				other.nodeID,
+				logging.NoLog{},
+				throttling.NewNoOutboundThrottler(),
+			),
+		)
+	}
+	peer0 := start(rawPeer0, rawPeer1)
+	peer1 := start(rawPeer1, rawPeer0)
+
+	require.NoError(peer0.AwaitReady(context.Background()))
+	require.NoError(peer1.AwaitReady(context.Background()))
+	require.Equal(0, peer0.Version().Compare(legacy))
+	require.Equal(0, peer1.Version().Compare(version.CurrentApp))
+	require.Equal("avalanche/1.0.0", version.CurrentApp.HandshakeString())
+
+	peer0.StartClose()
+	require.NoError(peer0.AwaitClosed(context.Background()))
+	require.NoError(peer1.AwaitClosed(context.Background()))
+}
