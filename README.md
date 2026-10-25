@@ -85,8 +85,13 @@ docker run -ti -p 9650:9650 -p 9651:9651 hyphenesc/dijetsnodesgo:xxxxxxxx /dijet
 To connect to the Dijets Mainnet, run:
 
 ```sh
-./build/dijetsnodesgo
+./build/dijetsnodesgo --bootstrap-ips=<beacon IP:port> --bootstrap-ids=<beacon node ID>
 ```
+
+The mainnet genesis of 2026-10-25 lists no default beacon addresses yet
+(`genesis/beacons.go`), so pass a genesis validator's address and node ID.
+To run the five genesis validators themselves, see
+[docs/mainnet-cluster.md](docs/mainnet-cluster.md).
 
 You should see some pretty ASCII art and log messages.
 
